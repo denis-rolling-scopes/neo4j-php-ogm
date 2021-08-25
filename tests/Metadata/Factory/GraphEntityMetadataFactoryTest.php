@@ -85,7 +85,7 @@ class GraphEntityMetadataFactoryTest extends TestCase
         $createdMetadata = $personMetadata->getPropertyMetadata('created');
         $this->assertTrue($createdMetadata->hasConverter());
         $this->assertEquals('datetime', $createdMetadata->getConverterType());
-        $this->assertInternalType('array', $createdMetadata->getConverterOptions());
+        $this->assertIsArray($createdMetadata->getConverterOptions());
         $this->assertArrayHasKey('db_format', $createdMetadata->getConverterOptions());
     }
 

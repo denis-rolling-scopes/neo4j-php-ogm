@@ -51,7 +51,7 @@ class QueryTest extends IntegrationTestCase
         $this->assertCount(4, $result);
 
         foreach ($result as $row) {
-            $this->assertInternalType('array', $row);
+            $this->assertIsArray($row);
             $this->assertArrayHasKey('root', $row);
             $this->assertArrayHasKey('level', $row);
         }
@@ -62,7 +62,7 @@ class QueryTest extends IntegrationTestCase
         $q = $this->em->createQuery('MATCH (level:Level) RETURN level');
         $q->addEntityMapping('level', Level::class);
 
-        $this->setExpectedException(NonUniqueResultException::class);
+        $this->expectException(NonUniqueResultException::class);
         $result = $q->getOneResult();
     }
 
@@ -71,7 +71,7 @@ class QueryTest extends IntegrationTestCase
         $q = $this->em->createQuery('MATCH (level:Level) RETURN level');
         $q->addEntityMapping('level', Level::class);
 
-        $this->setExpectedException(NonUniqueResultException::class);
+        $this->expectException(NonUniqueResultException::class);
         $result = $q->getOneOrNullResult();
     }
 
@@ -94,7 +94,7 @@ class QueryTest extends IntegrationTestCase
         $result = $q->getOneResult();
 
         $this->assertInstanceOf(Level::class, $result['root']);
-        $this->assertInternalType('array', $result['children']);
+        $this->assertIsArray($result['children']);
 
         foreach ($result['children'] as $o) {
             $this->assertInstanceOf(Level::class, $o);

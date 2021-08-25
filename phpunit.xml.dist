@@ -11,19 +11,12 @@
             <group>perf-test</group>
         </exclude>
     </groups>
-    <filter>
-        <blacklist>
-            <directory>tests</directory>
-            <directory>vendor</directory>
-            <directory>bin</directory>
-        </blacklist>
-    </filter>
 
     <php>
-        <env name="NEO4J_SCHEMA" value="http"/>
-        <env name="NEO4J_HOST" value="localhost"/>
-        <env name="NEO4J_PORT" value="7474"/>
+        <env name="NEO4J_SCHEMA" value="bolt"/>
+        <env name="NEO4J_HOST" value="neo4j"/>
+        <env name="NEO4J_PORT" value="7687"/>
         <env name="NEO4J_USER" value="neo4j"/>
-        <env name="NEO4J_PASSWORD" value="neo4j"/>
+        <env name="NEO4J_PASSWORD" value="test"/>
     </php>
 </phpunit>

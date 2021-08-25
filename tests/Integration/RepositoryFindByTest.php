@@ -63,7 +63,7 @@ class RepositoryFindByTest extends IntegrationTestCase
         $this->em->flush();
         $this->em->clear();
 
-        $this->setExpectedException(\LogicException::class);
+        $this->expectException(\LogicException::class);
         $user = $this->em->getRepository(User::class)->findOneBy(['login' => 'user1']);
     }
 }

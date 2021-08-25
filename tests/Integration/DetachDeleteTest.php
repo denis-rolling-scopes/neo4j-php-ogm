@@ -2,6 +2,7 @@
 
 namespace GraphAware\Neo4j\OGM\Tests\Integration;
 
+use GraphAware\Bolt\Exception\MessageFailureException;
 use GraphAware\Neo4j\Client\Exception\Neo4jException;
 use GraphAware\Neo4j\OGM\Tests\Integration\Models\MoviesDemo\Person;
 
@@ -21,7 +22,7 @@ class DetachDeleteTest extends IntegrationTestCase
     {
         $actor = $this->em->getRepository(Person::class)->findOneBy(['name' => 'Al Pacino']);
         $this->em->remove($actor);
-        $this->setExpectedException(Neo4jException::class);
+        $this->expectException(MessageFailureException::class);
         $this->em->flush();
     }
 
@@ -32,11 +33,10 @@ class DetachDeleteTest extends IntegrationTestCase
         $exceptionMessage = null;
         try {
             $this->em->flush();
-        } catch (Neo4jException $e) {
+        } catch (MessageFailureException $e) {
             $exceptionMessage = $e->getMessage();
         }
         $this->assertNotNull($exceptionMessage);
-        echo $exceptionMessage . PHP_EOL;
         $this->assertTrue(strpos($exceptionMessage, 'still has relationships') !== false);
     }
 

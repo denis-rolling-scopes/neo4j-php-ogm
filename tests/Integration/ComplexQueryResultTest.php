@@ -32,8 +32,8 @@ class ComplexQueryResultTest extends IntegrationTestCase
         $row = $result[0];
 
         $this->assertInstanceOf(Person::class, $row['n']);
-        $this->assertInternalType('array', $row['actInfo']);
-        $this->assertInternalType('array', $row['actInfo']['roles']);
+        $this->assertIsArray($row['actInfo']);
+        $this->assertIsArray($row['actInfo']['roles']);
         $this->assertInstanceOf(Movie::class, $row['actInfo']['movie']);
     }
 
@@ -51,7 +51,7 @@ class ComplexQueryResultTest extends IntegrationTestCase
 
         $result = $q->getResult();
         $this->assertCount(1, $result);
-        $this->assertInternalType('array', $result[0]['actorInfos']);
+        $this->assertIsArray($result[0]['actorInfos']);
         $this->assertInstanceOf(Movie::class, $result[0]['actorInfos'][0]['movie']);
         $this->assertCount(12, $result[0]['actorInfos']);
     }
@@ -70,7 +70,7 @@ class ComplexQueryResultTest extends IntegrationTestCase
         $this->assertCount(10, $result);
         $row = $result[0];
         $this->assertInstanceOf(Person::class, $row['n']);
-        $this->assertInternalType('array', $row['infos']);
+        $this->assertIsArray($row['infos']);
         $this->assertEquals($row['infos']['score'], count($row['infos']['movies']));
         $this->assertInstanceOf(Movie::class, $row['infos']['movies'][0]);
     }
@@ -88,7 +88,7 @@ class ComplexQueryResultTest extends IntegrationTestCase
 
         $this->assertCount(10, $result);
         $row = $result[0];
-        $this->assertInternalType('array', $row['infos']);
+        $this->assertIsArray($row['infos']);
         $this->assertEquals(1, count(array_keys($row)));
         $this->assertInstanceOf(Person::class, $row['infos']['user']);
         $this->assertEquals($row['infos']['score'], count($row['infos']['movies']));
