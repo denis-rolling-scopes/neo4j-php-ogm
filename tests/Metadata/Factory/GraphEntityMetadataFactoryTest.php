@@ -27,13 +27,14 @@ use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\Movie;
 use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\MovieRepository;
 use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\Person;
 use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\Rating;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class GraphEntityMetadataFactoryTest.
  *
  * @group xml-mapping
  */
-class GraphEntityMetadataFactoryTest extends \PHPUnit_Framework_TestCase
+class GraphEntityMetadataFactoryTest extends TestCase
 {
     /**
      * @var AnnotationGraphEntityMetadataFactory
@@ -45,7 +46,7 @@ class GraphEntityMetadataFactoryTest extends \PHPUnit_Framework_TestCase
      */
     private $xmlMetadataFactory;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->annotationMetadataFactory = new AnnotationGraphEntityMetadataFactory(new AnnotationReader());
         $this->xmlMetadataFactory = new XmlGraphEntityMetadataFactory(

@@ -14,7 +14,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\SimpleRelationshipEntity\Ratin
  */
 class TimestampConverterIntegrationTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();
@@ -56,7 +56,7 @@ class TimestampConverterIntegrationTest extends IntegrationTestCase
         $o = $this->em->getRepository(TimestampConverterEntity::class)->findOneBy(['time' => $ts]);
         $this->assertInstanceOf(\DateTime::class, $o->getTime());
     }
-    
+
     public function testTimestampsMillisAreConverted()
     {
         $dt = new \DateTime("NOW");

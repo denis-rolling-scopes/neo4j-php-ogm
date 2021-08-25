@@ -28,7 +28,7 @@ Some parts from the [old documentation](docs/reference/01-intro.md) might be sti
 
 For questions, please open a new thread on [StackOverflow](https://stackoverflow.com) with the `graphaware`, `neo4j` and `neo4j-php-ogm` tags.
 
-For isses, please raise a Github issue in the repository.
+For issues, please raise a Github issue in the repository.
 
 ## License
 

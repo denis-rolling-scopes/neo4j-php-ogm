@@ -14,7 +14,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\ManyToOne\Woman;
  */
 class ManyToOneSimpleRelationshipTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();

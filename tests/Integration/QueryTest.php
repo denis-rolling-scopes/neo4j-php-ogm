@@ -15,7 +15,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\Tree\Level;
  */
 class QueryTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();
@@ -85,7 +85,7 @@ class QueryTest extends IntegrationTestCase
 
     public function testCreateQueryCanMapMixedResults()
     {
-        $q = $this->em->createQuery('MATCH (n:Level) WHERE n.code = "root" MATCH (n)<-[r:PARENT_LEVEL*]-(child) 
+        $q = $this->em->createQuery('MATCH (n:Level) WHERE n.code = "root" MATCH (n)<-[r:PARENT_LEVEL*]-(child)
         RETURN n AS root, collect(child) AS children');
 
         $q->addEntityMapping('root', Level::class);
@@ -119,8 +119,8 @@ class QueryTest extends IntegrationTestCase
         $this->clearDb();
         $this->playMovies();
 
-        $q = $this->em->createQuery('MATCH (n:Person) WHERE n.name = {name} 
-        MATCH (n)-[:ACTED_IN]->(movie)<-[:ACTED_IN]-(coactor) 
+        $q = $this->em->createQuery('MATCH (n:Person) WHERE n.name = {name}
+        MATCH (n)-[:ACTED_IN]->(movie)<-[:ACTED_IN]-(coactor)
         RETURN n, movie, coactor');
 
         $q->setParameter('name', 'Tom Hanks');
@@ -148,7 +148,7 @@ class QueryTest extends IntegrationTestCase
         $this->assertEquals($hash, spl_object_hash($tomMovie));
         $this->assertTrue($tom->getMovies()->contains($movie1));
     }
-    
+
 
     private function createTree()
     {

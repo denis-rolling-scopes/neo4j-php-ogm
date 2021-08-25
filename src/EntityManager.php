@@ -249,9 +249,9 @@ class EntityManager implements EntityManagerInterface
     }
 
     /**
-     * @return \GraphAware\Neo4j\Client\ClientInterface
+     * @return ClientInterface
      */
-    public function getDatabaseDriver()
+    public function getDatabaseDriver(): ClientInterface
     {
         return $this->databaseDriver;
     }

@@ -11,7 +11,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\MoviesDemo\Person;
  */
 class ComplexQueryResultTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();
@@ -41,8 +41,8 @@ class ComplexQueryResultTest extends IntegrationTestCase
     {
         $this->clearDb();
         $this->playMovies();
-        $q = $this->em->createQuery('MATCH (n:Person {name:"Tom Hanks"})-[r:ACTED_IN]->(m) 
-        WITH n, {roles: r.roles, movie: m} AS actInfo 
+        $q = $this->em->createQuery('MATCH (n:Person {name:"Tom Hanks"})-[r:ACTED_IN]->(m)
+        WITH n, {roles: r.roles, movie: m} AS actInfo
         RETURN n, collect(actInfo) AS actorInfos LIMIT 2');
 
         $q->addEntityMapping('n', Person::class);
@@ -58,7 +58,7 @@ class ComplexQueryResultTest extends IntegrationTestCase
 
     public function testQueryReturningCollectionOfEntitiesInMap()
     {
-        $q = $this->em->createQuery('MATCH (n:Person)-[r:ACTED_IN]->(m) 
+        $q = $this->em->createQuery('MATCH (n:Person)-[r:ACTED_IN]->(m)
         RETURN n, {score: size((n)-[:ACTED_IN]->()), movies: collect(m)} AS infos LIMIT 10');
 
         $q->addEntityMapping('n', Person::class);
@@ -77,7 +77,7 @@ class ComplexQueryResultTest extends IntegrationTestCase
 
     public function testQueryReturningMapAsOnlyColumn()
     {
-        $q = $this->em->createQuery('MATCH (n:Person)-[r:ACTED_IN]->(m) 
+        $q = $this->em->createQuery('MATCH (n:Person)-[r:ACTED_IN]->(m)
         RETURN {user: n, score: size((n)-[:ACTED_IN]->()), movies: collect(m)} AS infos LIMIT 10');
 
         $q->addEntityMapping('user', Person::class);
