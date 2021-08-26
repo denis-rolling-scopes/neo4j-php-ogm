@@ -20,9 +20,6 @@ class IntegrationTestCase extends TestCase
 {
     protected $calls = [];
 
-    /**
-     * @var \GraphAware\Neo4j\Client\Client
-     */
     protected $client;
 
     /**

@@ -39,9 +39,6 @@ interface EntityManagerInterface extends ObjectManager
      */
     public function getUnitOfWork();
 
-    /**
-     * @return \GraphAware\Neo4j\Client\Client
-     */
     public function getDatabaseDriver();
 
     /**

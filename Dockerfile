@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libzip-dev \
+    && docker-php-ext-install -j$(nproc) gd sockets bcmath \
     && pecl install xdebug-3.0.1 \
     && docker-php-ext-install bcmath \
     && docker-php-ext-configure zip --with-zip \

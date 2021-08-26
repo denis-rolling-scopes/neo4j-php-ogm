@@ -3,7 +3,6 @@
 namespace GraphAware\Neo4j\OGM\Tests\Integration;
 
 use GraphAware\Bolt\Exception\MessageFailureException;
-use GraphAware\Neo4j\Client\Exception\Neo4jException;
 use GraphAware\Neo4j\OGM\Tests\Integration\Models\MoviesDemo\Person;
 
 /**
