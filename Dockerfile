@@ -11,14 +11,12 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libzip-dev \
-    && docker-php-ext-install -j$(nproc) gd sockets bcmath \
+    && docker-php-ext-install sockets \
     && pecl install xdebug-3.0.1 \
     && docker-php-ext-install bcmath \
     && docker-php-ext-configure zip --with-zip \
     && docker-php-ext-install zip \
     && docker-php-ext-enable xdebug
-
-ADD ./docker/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 COPY --from=composerDocker /usr/bin/composer /usr/bin/composer
 
