@@ -121,7 +121,7 @@ class EntityManager implements EntityManagerInterface
             throw new \Exception('EntityManager::merge() expects an object');
         }
 
-        $this->uow->merge($entity);
+        return $this->uow->merge($entity);
     }
 
     /**

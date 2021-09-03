@@ -15,18 +15,15 @@ use GraphAware\Neo4j\OGM\Annotations\OrderBy;
 use GraphAware\Neo4j\OGM\Annotations\Relationship;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
+use ReflectionClass;
 
 class RelationshipXmlMetadataFactory
 {
-    /**
-     * @param \SimpleXMLElement $node
-     * @param string            $className
-     * @param \ReflectionClass  $reflection
-     *
-     * @return array
-     */
-    public function buildRelationshipsMetadata(\SimpleXMLElement $node, $className, \ReflectionClass $reflection)
-    {
+    public function buildRelationshipsMetadata(
+        \SimpleXMLElement $node,
+        string $className,
+        ReflectionClass $reflection
+    ): array {
         $relationships = [];
         foreach ($node->relationship as $relationshipNode) {
             $relationships[] = $this->buildRelationshipMetadata($relationshipNode, $className, $reflection);
@@ -35,18 +32,11 @@ class RelationshipXmlMetadataFactory
         return $relationships;
     }
 
-    /**
-     * @param \SimpleXMLElement $relationshipNode
-     * @param string            $className
-     * @param \ReflectionClass  $reflection
-     *
-     * @return RelationshipMetadata
-     */
     private function buildRelationshipMetadata(
         \SimpleXMLElement $relationshipNode,
-        $className,
-        \ReflectionClass $reflection
-    ) {
+        string           $className,
+        ReflectionClass $reflection
+    ): RelationshipMetadata {
         if (
             !isset($relationshipNode['name'])
             || !isset($relationshipNode['type'])
@@ -96,11 +86,11 @@ class RelationshipXmlMetadataFactory
         }
 
         return new RelationshipMetadata(
-            $className,
-            $reflection->getProperty((string) $relationshipNode['name']),
-            $relationship,
-            isset($relationshipNode->lazy),
-            $orderBy
+            className: $className,
+            reflectionProperty: $reflection->getProperty((string) $relationshipNode['name']),
+            relationshipAnnotation: $relationship,
+            isLazy: isset($relationshipNode->lazy),
+            orderBy: $orderBy
         );
     }
 }

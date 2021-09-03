@@ -15,6 +15,7 @@ use Laudis\Neo4j\Types\Node;
 use GraphAware\Neo4j\OGM\EntityManager;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
+use ReflectionClass;
 use ReflectionNamedType;
 
 class ProxyFactory
@@ -146,7 +147,7 @@ PROXY;
             $returnStr = $getter;
 
             if (PHP_VERSION_ID > 70000) {
-                $reflClass = new \ReflectionClass($this->classMetadata->getClassName());
+                $reflClass = new ReflectionClass($this->classMetadata->getClassName());
                 $g = 'get'.ucfirst($relationship->getPropertyName());
                 if ($reflClass->hasMethod($g)) {
                     $reflMethod = $reflClass->getMethod($g);
@@ -186,7 +187,7 @@ METHOD;
         return $proxies;
     }
 
-    protected function getProxyClass()
+    protected function getProxyClass(): string
     {
         return 'neo4j_ogm_proxy_'.str_replace('\\', '_', $this->classMetadata->getClassName());
     }
@@ -210,7 +211,7 @@ METHOD;
             $rc = @unserialize(sprintf('C:%d:"%s":0:{}', strlen($proxyClass), $proxyClass));
 
             if (false === $rc || $rc instanceof \__PHP_Incomplete_Class) {
-                $rc = new \ReflectionClass($proxyClass);
+                $rc = new ReflectionClass($proxyClass);
                 return $rc->newInstanceWithoutConstructor();
             }
 

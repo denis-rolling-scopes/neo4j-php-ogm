@@ -11,30 +11,27 @@
 
 namespace GraphAware\Neo4j\OGM\Persister;
 
+use InvalidArgumentException;
 use Laudis\Neo4j\Databags\Statement;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
+use RuntimeException;
 
 class RelationshipPersister
 {
-    public function getRelationshipQuery($entityIdA, RelationshipMetadata $relationship, $entityIdB)
+    public function getRelationshipQuery($entityIdA, RelationshipMetadata $relationship, $entityIdB): Statement
     {
         if ('' === trim($relationship->getType())) {
-            throw new \RuntimeException(sprintf('Cannot create empty relationship type', $relationship->getPropertyName()));
+            throw new RuntimeException('Cannot create empty relationship type');
         }
 
-        switch ($relationship->getDirection()) {
-            case 'OUTGOING':
-                $relString = '-[r:%s]->';
-                break;
-            case 'INCOMING':
-                $relString = '<-[r:%s]-';
-                break;
-            case 'BOTH':
-                $relString = '-[r:%s]-';
-                break;
-            default:
-                throw new \InvalidArgumentException(sprintf('Direction "%s" is not valid', $relationship->getDirection()));
-        }
+        $relString = match ($relationship->getDirection()) {
+            'OUTGOING' => '-[r:%s]->',
+            'INCOMING' => '<-[r:%s]-',
+            'BOTH' => '-[r:%s]-',
+            default => throw new \InvalidArgumentException(
+                sprintf('Direction "%s" is not valid', $relationship->getDirection())
+            ),
+        };
 
         $relStringPart = sprintf($relString, $relationship->getType());
 
@@ -42,24 +39,19 @@ class RelationshipPersister
         MERGE (a)'.$relStringPart.'(b)
         RETURN id(r)';
 
-        return Statement::create($query, ['ida' => $entityIdA, 'idb' => $entityIdB], 'rel_create_'.$relationship->getPropertyName().$entityIdA.'_'.$entityIdB);
+        return Statement::create($query, ['ida' => $entityIdA, 'idb' => $entityIdB]);
     }
 
-    public function getDeleteRelationshipQuery($entityIdA, $entityIdB, RelationshipMetadata $relationship)
+    public function getDeleteRelationshipQuery($entityIdA, $entityIdB, RelationshipMetadata $relationship): Statement
     {
-        switch ($relationship->getDirection()) {
-            case 'OUTGOING':
-                $relString = '-[r:%s]->';
-                break;
-            case 'INCOMING':
-                $relString = '<-[r:%s]-';
-                break;
-            case 'BOTH':
-                $relString = '-[r:%s]-';
-                break;
-            default:
-                throw new \InvalidArgumentException(sprintf('Direction "%s" is not valid', $relationship->getDirection()));
-        }
+        $relString = match ($relationship->getDirection()) {
+            'OUTGOING' => '-[r:%s]->',
+            'INCOMING' => '<-[r:%s]-',
+            'BOTH' => '-[r:%s]-',
+            default => throw new InvalidArgumentException(
+                sprintf('Direction "%s" is not valid', $relationship->getDirection())
+            ),
+        };
 
         $relStringPart = sprintf($relString, $relationship->getType());
 

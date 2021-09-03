@@ -19,6 +19,7 @@ use GraphAware\Neo4j\OGM\Common\Collection;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Proxy\LazyCollection;
 use GraphAware\Neo4j\OGM\Util\ClassUtils;
+use ReflectionProperty;
 
 final class RelationshipMetadata
 {
@@ -38,7 +39,7 @@ final class RelationshipMetadata
     private $reflectionProperty;
 
     /**
-     * @var \GraphAware\Neo4j\OGM\Annotations\Relationship
+     * @var Relationship
      */
     private $relationshipAnnotation;
 
@@ -58,15 +59,21 @@ final class RelationshipMetadata
     private $orderBy;
 
     /**
-     * @param string                                         $className
-     * @param \ReflectionProperty                            $reflectionProperty
-     * @param \GraphAware\Neo4j\OGM\Annotations\Relationship $relationshipAnnotation
-     * @param bool                                           $isLazy
-     * @param OrderBy                                        $orderBy
-     * @param mixed                                          $isFetch
+     * @param string $className
+     * @param ReflectionProperty $reflectionProperty
+     * @param Relationship $relationshipAnnotation
+     * @param bool $isLazy
+     * @param mixed $isFetch
+     * @param OrderBy|null $orderBy
      */
-    public function __construct($className, \ReflectionProperty $reflectionProperty, Relationship $relationshipAnnotation, $isLazy = false, $isFetch = false, OrderBy $orderBy = null)
-    {
+    public function __construct(
+        string $className,
+        ReflectionProperty $reflectionProperty,
+        Relationship $relationshipAnnotation,
+        bool $isLazy = false,
+        ?bool $isFetch = false,
+        OrderBy $orderBy = null
+    ) {
         $this->className = $className;
         $this->propertyName = $reflectionProperty->getName();
         $this->reflectionProperty = $reflectionProperty;
