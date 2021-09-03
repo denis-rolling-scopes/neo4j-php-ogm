@@ -12,32 +12,28 @@
 namespace GraphAware\Neo4j\OGM\Proxy;
 
 use Doctrine\Common\Collections\AbstractLazyCollection;
-use GraphAware\Common\Type\Node;
 use GraphAware\Neo4j\OGM\Common\Collection;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
 
 class LazyCollection extends AbstractLazyCollection
 {
-    private $initalizer;
-
-    private $node;
+    private SingleNodeInitializer $initializer;
 
     private $object;
 
-    private $initializing = false;
+    private bool $initializing = false;
 
-    private $added = [];
+    private array $added = [];
 
-    private $countTriggered = false;
+    private bool $countTriggered = false;
 
     private $initialCount;
 
-    private $relationshipMetadata;
+    private RelationshipMetadata $relationshipMetadata;
 
-    public function __construct(SingleNodeInitializer $initializer, Node $node, $object, RelationshipMetadata $relationshipMetadata)
+    public function __construct(SingleNodeInitializer $initializer, $object, RelationshipMetadata $relationshipMetadata)
     {
-        $this->initalizer = $initializer;
-        $this->node = $node;
+        $this->initializer = $initializer;
         $this->object = $object;
         $this->collection = new Collection();
         $this->relationshipMetadata = $relationshipMetadata;
@@ -49,13 +45,13 @@ class LazyCollection extends AbstractLazyCollection
             return;
         }
         $this->initializing = true;
-        $this->initalizer->initialize($this->node, $this->object);
+        $this->initializer->initialize($this->object);
         $this->initialized = true;
         $this->initializing = false;
         $this->collection = new Collection($this->added);
     }
 
-    public function add($element, $andFetch = true)
+    public function add($element, $andFetch = true): bool
     {
         $this->added[] = $element;
         if (!$andFetch) {
@@ -64,12 +60,12 @@ class LazyCollection extends AbstractLazyCollection
         return parent::add($element);
     }
 
-    public function getAddWithoutFetch()
+    public function getAddWithoutFetch(): array
     {
         return $this->added;
     }
 
-    public function removeElement($element)
+    public function removeElement($element): bool
     {
         if (in_array($element, $this->added)) {
             unset($this->added[array_search($element, $this->added)]);
@@ -77,19 +73,17 @@ class LazyCollection extends AbstractLazyCollection
         return parent::removeElement($element);
     }
 
-    public function count()
+    public function count(): int
     {
         if ($this->initialized) {
             return parent::count();
         }
 
         if (!$this->countTriggered) {
-            $this->initialCount = $this->initalizer->getCount($this->object, $this->relationshipMetadata);
+            $this->initialCount = $this->initializer->getCount($this->object, $this->relationshipMetadata);
             $this->countTriggered = true;
         }
 
         return $this->initialCount + count($this->collection);
     }
-
-
 }

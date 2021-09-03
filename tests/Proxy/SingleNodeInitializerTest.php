@@ -25,6 +25,6 @@ class SingleNodeInitializerTest extends IntegrationTestCase
 
     private function createSmallGraph()
     {
-        return $this->client->run('CREATE (n:Init)-[:RELATES]->(n2:Related) RETURN id(n) AS id')->firstRecord()->get('id');
+        return $this->client->run('CREATE (n:Init)-[:RELATES]->(n2:Related) RETURN id(n) AS id')->first()->get('id');
     }
 }

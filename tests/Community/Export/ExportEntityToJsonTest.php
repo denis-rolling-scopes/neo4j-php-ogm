@@ -1,6 +1,6 @@
 <?php
 
-namespace GraphAware\Neo4j\OGM\Tests\Community;
+namespace GraphAware\Neo4j\OGM\Tests\Community\Export;
 
 use GraphAware\Neo4j\OGM\Tests\Community\Issue21\TestUser;
 use GraphAware\Neo4j\OGM\Tests\Integration\IntegrationTestCase;

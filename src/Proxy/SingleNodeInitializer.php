@@ -11,27 +11,20 @@
 
 namespace GraphAware\Neo4j\OGM\Proxy;
 
-use GraphAware\Common\Type\Node;
 use GraphAware\Neo4j\OGM\EntityManager;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
 
 class SingleNodeInitializer
 {
-    protected $em;
-
-    protected $relationshipMetadata;
-
-    protected $metadata;
-
-    public function __construct(EntityManager $em, RelationshipMetadata $relationshipMetadata, NodeEntityMetadata $nodeEntityMetadata)
-    {
-        $this->em = $em;
-        $this->relationshipMetadata = $relationshipMetadata;
-        $this->metadata = $nodeEntityMetadata;
+    public function __construct(
+        protected EntityManager $em,
+        protected RelationshipMetadata $relationshipMetadata,
+        protected NodeEntityMetadata $metadata
+    ) {
     }
 
-    public function initialize(Node $node, $baseInstance)
+    public function initialize($baseInstance)
     {
         $persister = $this->em->getEntityPersister($this->metadata->getClassName());
         $persister->getSimpleRelationship($this->relationshipMetadata->getPropertyName(), $baseInstance);

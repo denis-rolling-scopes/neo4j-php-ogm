@@ -11,26 +11,19 @@
 
 namespace GraphAware\Neo4j\OGM\Proxy;
 
-use GraphAware\Common\Type\Node;
+use Laudis\Neo4j\Types\Node;
 use GraphAware\Neo4j\OGM\EntityManager;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
 use ReflectionNamedType;
-use ReflectionType;
 
 class ProxyFactory
 {
-    protected $em;
+    protected ?string $proxyDir;
 
-    protected $classMetadata;
-
-    protected $proxyDir;
-
-    public function __construct(EntityManager $em, NodeEntityMetadata $classMetadata)
+    public function __construct(protected EntityManager $em, protected NodeEntityMetadata $classMetadata)
     {
-        $this->em = $em;
-        $this->classMetadata = $classMetadata;
-        $this->proxyDir = $em->getProxyDirectory();
+        $this->proxyDir = $this->em->getProxyDirectory();
     }
 
     public function fromNode(Node $node, array $mappedByProperties = [])
@@ -58,9 +51,6 @@ class ProxyFactory
                 }
             } else {
                 if (!in_array($relationshipEntity->getPropertyName(), $mappedByProperties, true)) {
-//                    $initializer = new RelationshipEntityCollectionInitializer($this->em, $relationshipEntity, $this->classMetadata);
-//                    $initializers[$relationshipEntity->getPropertyName()] = $initializer;
-
                     $mappedByProperties[] = $relationshipEntity->getPropertyName();
                 }
             }
@@ -75,7 +65,7 @@ class ProxyFactory
                 $initializer = $relationship->isRelationshipEntity()
                     ? new RelationshipEntityCollectionInitializer($this->em, $relationship, $this->classMetadata)
                     : $this->getInitializerFor($relationship);
-                $lc = new LazyCollection($initializer, $node, $object, $relationship);
+                $lc = new LazyCollection($initializer, $object, $relationship);
                 $relationship->setValue($object, $lc);
             }
         }
@@ -120,7 +110,7 @@ class $proxyClass extends $class implements EntityProxy
     public function __initializeProperty(\$propertyName)
     {
         if (!array_key_exists(\$propertyName, \$this->initialized)) {
-            \$this->initializers[\$propertyName]->initialize(\$this->node, \$this);
+            \$this->initializers[\$propertyName]->initialize(\$this);
             \$this->initialized[\$propertyName] = null;
         }
     }

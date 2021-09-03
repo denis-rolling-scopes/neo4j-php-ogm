@@ -84,7 +84,7 @@ final class RelationshipMetadata
     /**
      * @return string
      */
-    public function getPropertyName()
+    public function getPropertyName(): string
     {
         return $this->propertyName;
     }

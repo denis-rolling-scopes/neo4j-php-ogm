@@ -11,11 +11,11 @@
 
 namespace GraphAware\Neo4j\OGM\Tests\Proxy;
 
+use Laudis\Neo4j\Types\Node;
 use GraphAware\Neo4j\OGM\Proxy\EntityProxy;
 use GraphAware\Neo4j\OGM\Proxy\ProxyFactory;
 use GraphAware\Neo4j\OGM\Tests\Integration\IntegrationTestCase;
 use GraphAware\Neo4j\OGM\Tests\Proxy\Model\PHP7\User;
-use GraphAware\Neo4j\OGM\Tests\Util\NodeProxy;
 
 /**
  * Class ProxyFactoryTest.
@@ -31,17 +31,18 @@ class ProxyFactoryTest extends IntegrationTestCase
     {
         $cm = $this->em->getClassMetadata(Init::class);
         $factory = new ProxyFactory($this->em, $cm);
-        $id = $this->createSmallGraph();
-        $o = $factory->fromNode(new NodeProxy($id));
+        $cypherList = $this->createSmallGraph();
+        $cypherMap = $cypherList->first();
+        $object = $factory->fromNode(new Node($cypherMap->get('id'), $cypherList, $cypherMap));
 
-        $this->assertInstanceOf(Init::class, $o);
-        $this->assertInstanceOf(EntityProxy::class, $o);
+        $this->assertInstanceOf(Init::class, $object);
+        $this->assertInstanceOf(EntityProxy::class, $object);
     }
 
     public function testProxyIsReturnedFromRepository()
     {
         $this->clearDb();
-        $id = $this->createSmallGraph();
+        $id = $this->createSmallGraph()->first()->get('id');
 
         $init = $this->em->getRepository(Init::class)->findOneById($id);
         $this->assertInstanceOf(Init::class, $init);
@@ -65,15 +66,16 @@ class ProxyFactoryTest extends IntegrationTestCase
     {
         $cm = $this->em->getClassMetadata(User::class);
         $factory = new ProxyFactory($this->em, $cm);
-        $id = $this->client->run('CREATE (u:User {login:"Ale"})-[:HAS_PROFILE]->(:Profile {email:"php@graphaware.com"}) RETURN id(u) AS id')->firstRecord()->get('id');
-        $o = $factory->fromNode(new NodeProxy($id));
+        $cypherList = $this->client->run('CREATE (u:User {login:"Ale"})-[:HAS_PROFILE]->(:Profile {email:"php@graphaware.com"}) RETURN id(u) AS id');
+        $cypherMap = $cypherList->first();
+        $object = $factory->fromNode(new Node($cypherMap->get('id'), $cypherList, $cypherMap));
 
-        $this->assertInstanceOf(User::class, $o);
-        $this->assertInstanceOf(EntityProxy::class, $o);
+        $this->assertInstanceOf(User::class, $object);
+        $this->assertInstanceOf(EntityProxy::class, $object);
     }
 
     private function createSmallGraph()
     {
-        return $this->client->run('CREATE (n:Init {name:"Ale"})-[:RELATES]->(n2:Related {name:"Chris"}), (n)-[:HAS_PROFILE]->(:Profile {email:"php@graphaware.com"}) RETURN id(n) AS id')->firstRecord()->get('id');
+        return $this->client->run('CREATE (n:Init {name:"Ale"})-[:RELATES]->(n2:Related {name:"Chris"}), (n)-[:HAS_PROFILE]->(:Profile {email:"php@graphaware.com"}) RETURN id(n) AS id');
     }
 }

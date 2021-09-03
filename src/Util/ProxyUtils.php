@@ -13,7 +13,7 @@ namespace GraphAware\Neo4j\OGM\Util;
 
 class ProxyUtils
 {
-    public static function getPropertyIdentifier(\ReflectionProperty $reflectionProperty, $className)
+    public static function getPropertyIdentifier(\ReflectionProperty $reflectionProperty, $className): string
     {
         $key = null;
         if ($reflectionProperty->isPrivate()) {

@@ -11,112 +11,76 @@
 
 namespace GraphAware\Neo4j\OGM;
 
-use GraphAware\Common\Result\Result;
 use GraphAware\Neo4j\OGM\Exception\Result\NonUniqueResultException;
 use GraphAware\Neo4j\OGM\Exception\Result\NoResultException;
+use Laudis\Neo4j\Types\CypherList;
 
 class Query
 {
-    const PARAMETER_LIST = 0;
+    public const HYDRATE_COLLECTION = "HYDRATE_COLLECTION";
 
-    const PARAMETER_MAP = 1;
+    public const HYDRATE_SINGLE = "HYDRATE_SINGLE";
 
-    const HYDRATE_COLLECTION = "HYDRATE_COLLECTION";
+    public const HYDRATE_RAW = "HYDRATE_RAW";
 
-    const HYDRATE_SINGLE = "HYDRATE_SINGLE";
+    public const HYDRATE_MAP = "HYDRATE_MAP";
 
-    const HYDRATE_RAW = "HYDRATE_RAW";
+    public const HYDRATE_MAP_COLLECTION = "HYDRATE_MAP_COLLECTION";
 
-    const HYDRATE_MAP = "HYDRATE_MAP";
+    protected string $cql;
 
-    const HYDRATE_MAP_COLLECTION = "HYDRATE_MAP_COLLECTION";
+    protected array $parameters = [];
 
-    protected $em;
+    protected array $mappings = [];
 
-    protected $cql;
-
-    protected $parameters = [];
-
-    protected $mappings = [];
-
-    protected $resultMappings = [];
-
-    /**
-     * @param EntityManager $entityManager
-     */
-    public function __construct(EntityManager $entityManager)
+    public function __construct(protected EntityManager $entityManager)
     {
-        $this->em = $entityManager;
     }
 
-    /**
-     * @param $cql
-     * @return $this
-     */
-    public function setCQL($cql)
+    public function setCQL($cql): static
     {
         $this->cql = $cql;
 
         return $this;
     }
 
-    /**
-     * @param string $key
-     * @param null|string|array|bool|int|float $value
-     * @param null|int $type
-     * @return $this
-     */
-    public function setParameter($key, $value, $type = null)
+    public function setParameter(string $key, float|int|bool|array|string|null $value, int $type = null): static
     {
         $this->parameters[$key] = [$value, $type];
 
         return $this;
     }
 
-    /**
-     * @param string $alias
-     * @param string $className
-     * @param string $hydrationType
-     * @return $this
-     */
-    public function addEntityMapping($alias, $className, $hydrationType = self::HYDRATE_SINGLE)
-    {
+    public function addEntityMapping(
+        string $alias,
+        ?string $className,
+        string $hydrationType = self::HYDRATE_SINGLE
+    ): static {
         $this->mappings[$alias] = [$className, $hydrationType];
 
         return $this;
     }
 
-    /**
-     * @return array|mixed
-     */
-    public function getResult()
+    public function getResult(): array
     {
         return $this->execute();
     }
 
-    /**
-     * @return array|mixed
-     * @throws \Exception
-     */
-    public function execute()
+    public function execute(): array
     {
         $stmt = $this->cql;
         $parameters = $this->formatParameters();
 
-        $result = $this->em->getDatabaseDriver()->run($stmt, $parameters);
-        if ($result->size() === 0) {
+        /** @var CypherList $result */
+        $result = $this->entityManager->getDatabaseDriver()->run($stmt, $parameters);
+        if ($result->count() === 0) {
             return [];
         }
 
-        $cqlResult = $this->handleResult($result);
-
-        return $cqlResult;
+        return $this->handleResult($result);
     }
 
-    /**
-     * @return array
-     */
-    private function formatParameters()
+    private function formatParameters(): array
     {
         $params = [];
         foreach ($this->parameters as $alias => $parameter) {
@@ -126,11 +90,11 @@ class Query
         return $params;
     }
 
-    private function handleResult(Result $result)
+    private function handleResult(CypherList $result): array
     {
         $queryResult = [];
 
-        foreach ($result->records() as $record) {
+        foreach ($result->toArray() as $record) {
             $row = [];
             $keys = $record->keys();
 
@@ -140,21 +104,21 @@ class Query
 
                 if ($mode === self::HYDRATE_SINGLE) {
                     if (count($keys) === 1) {
-                        $row = $this->em->getEntityHydrator($this->mappings[$key][0])->hydrateNode($record->get($key));
+                        $row = $this->entityManager->getEntityHydrator($this->mappings[$key][0])->hydrateNode($record->get($key));
                     } else {
-                        $row[$key] = $this->em->getEntityHydrator($this->mappings[$key][0])->hydrateNode($record->get($key));
+                        $row[$key] = $this->entityManager->getEntityHydrator($this->mappings[$key][0])->hydrateNode($record->get($key));
                     }
                 } elseif ($mode === self::HYDRATE_COLLECTION) {
                     $coll = [];
                     foreach ($record->get($key) as $i) {
-                        $v = $this->em->getEntityHydrator($this->mappings[$key][0])->hydrateNode($i);
+                        $v = $this->entityManager->getEntityHydrator($this->mappings[$key][0])->hydrateNode($i);
                         $coll[] = $v;
                     }
                     $row[$key] = $coll;
                 } elseif ($mode === self::HYDRATE_MAP_COLLECTION) {
                     $row[$key] = $this->hydrateMapCollection($record->get($key));
                 } elseif ($mode === self::HYDRATE_MAP) {
-                    $row[$key] = $this->hydrateMap($record->get($key));
+                    $row[$key] = $this->hydrateMap($record->get($key)->toArray());
                 } elseif ($mode === self::HYDRATE_RAW) {
                     $row[$key] = $record->get($key);
                 }
@@ -176,11 +140,11 @@ class Query
      * @param $map
      * @return array
      */
-    private function hydrateMapCollection($map)
+    private function hydrateMapCollection($map): array
     {
         $row = [];
-        foreach ($map as $key => $value) {
-            $row[] = $this->hydrateMap($value);
+        foreach ($map as $value) {
+            $row[] = $this->hydrateMap($value->toArray());
         }
         return $row;
     }
@@ -197,7 +161,7 @@ class Query
      * @param $map array
      * @return array
      */
-    private function hydrateMap(array $map)
+    private function hydrateMap(array $map): array
     {
         $row = [];
         foreach ($map as $key => $value) {
@@ -211,38 +175,35 @@ class Query
      * Node collection, map, map collection or to RAW value.
      * Mapping relies on $key
      *
-     * @param $key
-     * @param $value
-     * @return array|mixed|null|object
+     * @param string $key
+     * @param mixed $value
+     * @return array|null|int|object
      */
-    private function hydrateMapValue($key, $value)
+    private function hydrateMapValue(string $key, mixed $value): array|null|int|object
     {
         $row = [];
         $mode = array_key_exists($key, $this->mappings) ? $this->mappings[$key][1] : self::HYDRATE_RAW;
 
         if ($mode === self::HYDRATE_SINGLE) {
-            $row = $this->em->getEntityHydrator($this->mappings[$key][0])->hydrateNode($value);
+            $row = $this->entityManager->getEntityHydrator($this->mappings[$key][0])->hydrateNode($value);
         } elseif ($mode === self::HYDRATE_COLLECTION) {
             $coll = [];
             foreach ($value as $i) {
-                $v = $this->em->getEntityHydrator($this->mappings[$key][0])->hydrateNode($i);
+                $v = $this->entityManager->getEntityHydrator($this->mappings[$key][0])->hydrateNode($i);
                 $coll[] = $v;
             }
             $row = $coll;
         } elseif ($mode === self::HYDRATE_MAP_COLLECTION) {
             $row = $this->hydrateMapCollection($value);
         } elseif ($mode === self::HYDRATE_MAP) {
-            $row = $this->hydrateMap($value);
+            $row = $this->hydrateMap($value->toArray());
         } elseif ($mode === self::HYDRATE_RAW) {
-            $row = $value;
+            $row = $value instanceof CypherList ? $value->toArray() : $value;
         }
         return $row;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getOneOrNullResult()
+    public function getOneOrNullResult(): ?array
     {
         $result = $this->execute();
 
@@ -258,9 +219,6 @@ class Query
         return $result;
     }
 
-    /**
-     * @return mixed
-     */
     public function getOneResult()
     {
         $result = $this->execute();

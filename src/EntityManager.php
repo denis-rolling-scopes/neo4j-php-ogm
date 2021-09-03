@@ -14,8 +14,6 @@ namespace GraphAware\Neo4j\OGM;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\FileCacheReader;
 use Doctrine\Common\EventManager;
-use GraphAware\Neo4j\Client\ClientBuilder;
-use GraphAware\Neo4j\Client\ClientInterface;
 use GraphAware\Neo4j\OGM\Converters\Converter;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Hydrator\EntityHydrator;
@@ -29,6 +27,8 @@ use GraphAware\Neo4j\OGM\Persisters\BasicEntityPersister;
 use GraphAware\Neo4j\OGM\Proxy\ProxyFactory;
 use GraphAware\Neo4j\OGM\Repository\BaseRepository;
 use GraphAware\Neo4j\OGM\Util\ClassUtils;
+use Laudis\Neo4j\ClientBuilder;
+use Laudis\Neo4j\Contracts\ClientInterface;
 
 class EntityManager implements EntityManagerInterface
 {
@@ -36,11 +36,6 @@ class EntityManager implements EntityManagerInterface
      * @var UnitOfWork
      */
     protected $uow;
-
-    /**
-     * @var ClientInterface
-     */
-    protected $databaseDriver;
 
     /**
      * @var BaseRepository[]
@@ -58,16 +53,6 @@ class EntityManager implements EntityManagerInterface
     protected $loadedMetadata = [];
 
     /**
-     * @var GraphEntityMetadataFactoryInterface
-     */
-    protected $metadataFactory;
-
-    /**
-     * @var EventManager
-     */
-    protected $eventManager;
-
-    /**
      * @var string
      */
     protected $proxyDirectory;
@@ -82,47 +67,30 @@ class EntityManager implements EntityManagerInterface
      */
     protected $entityHydrators = [];
 
-    /**
-     * @var array
-     */
-    protected $entityPersisters = [];
-
-    /**
-     * EntityManager constructor.
-     *
-     * @param ClientInterface                          $databaseDriver
-     * @param null|string                              $cacheDirectory
-     * @param null|EventManager                        $eventManager
-     * @param null|GraphEntityMetadataFactoryInterface $metadataFactory
-     *
-     * @throws \Doctrine\Common\Annotations\AnnotationException
-     */
     public function __construct(
-        ClientInterface $databaseDriver,
-        $cacheDirectory = null,
-        EventManager $eventManager = null,
-        GraphEntityMetadataFactoryInterface $metadataFactory = null
+        protected ClientInterface $databaseDriver,
+        string $cacheDirectory = null,
+        protected ?EventManager $eventManager = null,
+        protected ?GraphEntityMetadataFactoryInterface $metadataFactory = null
     ) {
         $this->eventManager = $eventManager ?: new EventManager();
         $this->uow = new UnitOfWork($this);
-        $this->databaseDriver = $databaseDriver;
 
-        if ($metadataFactory === null) {
+        if ($this->metadataFactory === null) {
             $reader = new FileCacheReader(new AnnotationReader(), $cacheDirectory, $debug = true);
-            $metadataFactory = new AnnotationGraphEntityMetadataFactory($reader);
+            $this->metadataFactory = new AnnotationGraphEntityMetadataFactory($reader);
         }
-        $this->metadataFactory = $metadataFactory;
         $this->proxyDirectory = $cacheDirectory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function create($host, $cacheDir = null, EventManager $eventManager = null)
-    {
+    public static function create(
+        string $host,
+        string $cacheDir = null,
+        EventManager $eventManager = null
+    ): EntityManagerInterface {
         $cache = $cacheDir ?: sys_get_temp_dir();
         $client = ClientBuilder::create()
-            ->addConnection('default', $host)
+            ->withDriver('neo4j', $host)
             ->build();
 
         return new self($client, $cache, $eventManager);
@@ -211,7 +179,7 @@ class EntityManager implements EntityManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function contains($entity)
+    public function contains($entity): bool
     {
         return $this->uow->isScheduledForCreate($entity)
         || $this->uow->isManaged($entity)
@@ -221,7 +189,7 @@ class EntityManager implements EntityManagerInterface
     /**
      * @return EventManager
      */
-    public function getEventManager()
+    public function getEventManager(): EventManager
     {
         return $this->eventManager;
     }
@@ -240,10 +208,7 @@ class EntityManager implements EntityManagerInterface
         $this->uow->flush();
     }
 
-    /**
-     * @return UnitOfWork
-     */
-    public function getUnitOfWork()
+    public function getUnitOfWork(): UnitOfWork
     {
         return $this->uow;
     }
@@ -256,7 +221,7 @@ class EntityManager implements EntityManagerInterface
         return $this->databaseDriver;
     }
 
-    public function getResultMappingMetadata($class)
+    public function getResultMappingMetadata(string $class): QueryResultMapper
     {
         if (!array_key_exists($class, $this->resultMappers)) {
             $this->resultMappers[$class] = $this->metadataFactory->createQueryResultMapper($class);
@@ -271,11 +236,6 @@ class EntityManager implements EntityManagerInterface
         return $this->resultMappers[$class];
     }
 
-    /**
-     * @param $class
-     *
-     * @return \GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata
-     */
     public function getClassMetadataFor($class)
     {
         if (!array_key_exists($class, $this->loadedMetadata)) {
@@ -311,7 +271,7 @@ class EntityManager implements EntityManagerInterface
      *
      * @return BaseRepository
      */
-    public function getRepository($class)
+    public function getRepository($class): BaseRepository
     {
         $classMetadata = $this->getClassMetadataFor($class);
         if (!array_key_exists($class, $this->repositories)) {
@@ -331,10 +291,7 @@ class EntityManager implements EntityManagerInterface
         $this->uow = new UnitOfWork($this);
     }
 
-    /**
-     * @return string
-     */
-    public function getProxyDirectory()
+    public function getProxyDirectory(): string
     {
         return $this->proxyDirectory;
     }
@@ -350,7 +307,7 @@ class EntityManager implements EntityManagerInterface
      *
      * @return ProxyFactory
      */
-    public function getProxyFactory(NodeEntityMetadata $entityMetadata)
+    public function getProxyFactory(NodeEntityMetadata $entityMetadata): ProxyFactory
     {
         if (!array_key_exists($entityMetadata->getClassName(), $this->proxyFactories)) {
             $this->proxyFactories[$entityMetadata->getClassName()] = new ProxyFactory($this, $entityMetadata);
@@ -359,12 +316,7 @@ class EntityManager implements EntityManagerInterface
         return $this->proxyFactories[$entityMetadata->getClassName()];
     }
 
-    /**
-     * @param $className
-     *
-     * @return EntityHydrator
-     */
-    public function getEntityHydrator($className)
+    public function getEntityHydrator(string $className): EntityHydrator
     {
         if (!array_key_exists($className, $this->entityHydrators)) {
             $this->entityHydrators[$className] = new EntityHydrator($className, $this);
@@ -373,18 +325,12 @@ class EntityManager implements EntityManagerInterface
         return $this->entityHydrators[$className];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getEntityPersister($className)
+    public function getEntityPersister(string $className): BasicEntityPersister
     {
         return new BasicEntityPersister($className, $this->getClassMetadataFor($className), $this);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function createQuery($cql = '')
+    public function createQuery(string $cql = ''): Query
     {
         $query = new Query($this);
 
@@ -395,10 +341,7 @@ class EntityManager implements EntityManagerInterface
         return $query;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function registerPropertyConverter($name, $classname)
+    public function registerPropertyConverter(string $name, string $classname): void
     {
         Converter::addConverter($name, $classname);
     }

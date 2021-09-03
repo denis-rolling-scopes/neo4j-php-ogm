@@ -64,7 +64,7 @@ class ManyToOneSimpleRelationshipTest extends IntegrationTestCase
 
         $this->assertGraphNotExist(sprintf('(w:Woman)-[:OWNS_BAG]->(b:Bag {brand: "%s"})', $bagToRemove->getBrand()));
         $result = $this->client->run('MATCH (n:Woman)-[:OWNS_BAG]->(b) RETURN n, count(b) AS c');
-        $this->assertEquals(2, $result->firstRecord()->get('c'));
+        $this->assertEquals(2, $result->first()->get('c'));
     }
 
     private function createWomanWithBags()

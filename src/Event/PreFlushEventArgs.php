@@ -17,25 +17,11 @@ use GraphAware\Neo4j\OGM\EntityManager;
 class PreFlushEventArgs extends EventArgs
 {
     /**
-     * @var EntityManager
-     */
-    protected $entityManager;
-
-    /**
      * PreFlushEventArgs constructor.
      *
      * @param EntityManager $entityManager
      */
-    public function __construct(EntityManager $entityManager)
+    public function __construct(protected EntityManager $entityManager)
     {
-        $this->entityManager = $entityManager;
-    }
-
-    /**
-     * @return EntityManager
-     */
-    public function getEntityManager()
-    {
-        return $this->entityManager;
     }
 }

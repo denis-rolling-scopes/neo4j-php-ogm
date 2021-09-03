@@ -78,9 +78,9 @@ final class LabeledPropertyMetadata
 
     /**
      * @param object $object
-     * @param bool   $value
+     * @param bool $value
      */
-    public function setLabel($object, $value)
+    public function setLabel(object $object, bool $value)
     {
         $this->reflectionProperty->setAccessible(true);
         $this->reflectionProperty->setValue($object, $value);
@@ -91,7 +91,7 @@ final class LabeledPropertyMetadata
      *
      * @return bool
      */
-    public function isLabelSet($object)
+    public function isLabelSet(object $object): bool
     {
         $this->reflectionProperty->setAccessible(true);
         $v = $this->reflectionProperty->getValue($object);

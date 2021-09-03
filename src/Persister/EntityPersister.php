@@ -11,33 +11,18 @@
 
 namespace GraphAware\Neo4j\OGM\Persister;
 
-use GraphAware\Common\Cypher\Statement;
+use Laudis\Neo4j\Databags\Statement;
 use GraphAware\Neo4j\OGM\Converters\Converter;
 use GraphAware\Neo4j\OGM\EntityManager;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 
 class EntityPersister
 {
-    /**
-     * @var \GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata
-     */
-    protected $classMetadata;
-
-    /**
-     * @var string
-     */
-    protected $className;
-
-    /**
-     * @var EntityManager
-     */
-    protected $entityManager;
-
-    public function __construct(EntityManager $entityManager, $className, NodeEntityMetadata $classMetadata)
-    {
-        $this->className = $className;
-        $this->classMetadata = $classMetadata;
-        $this->entityManager = $entityManager;
+    public function __construct(
+        protected EntityManager $entityManager,
+        protected string $className,
+        protected NodeEntityMetadata $classMetadata
+    ) {
     }
 
     public function getCreateQuery($object)
@@ -70,7 +55,10 @@ class EntityPersister
             }
         }
 
-        $query = sprintf('CREATE (n:%s) SET n += {properties}', $this->classMetadata->getLabel());
+        $query = sprintf('CREATE (n:%s)', $this->classMetadata->getLabel());
+        if (!empty($propertyValues)) {
+            $query .= ' SET n += {properties}';
+        }
         if (!empty($extraLabels)) {
             foreach ($extraLabels as $label) {
                 $query .= ' SET n:'.$label;
@@ -84,7 +72,7 @@ class EntityPersister
 
         $query .= ' RETURN id(n) as id';
 
-        return Statement::create($query, ['properties' => $propertyValues], spl_object_hash($object));
+        return Statement::create($query, ['properties' => $propertyValues]);
     }
 
     public function getUpdateQuery($object)
@@ -136,22 +124,22 @@ class EntityPersister
     /**
      * Refreshes a managed entity.
      *
-     * @param int    $id
+     * @param int $id
      * @param object $entity The entity to refresh
      */
-    public function refresh($id, $entity)
+    public function refresh(int $id, object $entity)
     {
         $label = $this->classMetadata->getLabel();
         $query = sprintf('MATCH (n:%s) WHERE id(n) = {%s} RETURN n', $label, 'id');
         $result = $this->entityManager->getDatabaseDriver()->run($query, ['id' => $id]);
 
-        if ($result->size() > 0) {
-            $node = $result->firstRecord()->nodeValue('n');
+        if ($result->count() > 0) {
+            $node = $result->first()->get('n');
             $this->entityManager->getEntityHydrator($this->className)->refresh($node, $entity);
         }
     }
 
-    public function getDetachDeleteQuery($object)
+    public function getDetachDeleteQuery($object): Statement
     {
         $query = 'MATCH (n) WHERE id(n) = {id} DETACH DELETE n';
         $id = $this->classMetadata->getIdValue($object);
@@ -159,7 +147,7 @@ class EntityPersister
         return Statement::create($query, ['id' => $id]);
     }
 
-    public function getDeleteQuery($object)
+    public function getDeleteQuery($object): Statement
     {
         $query = 'MATCH (n) WHERE id(n) = {id} DELETE n';
         $id = $this->classMetadata->getIdValue($object);

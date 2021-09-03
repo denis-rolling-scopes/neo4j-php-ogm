@@ -11,7 +11,7 @@
 
 namespace GraphAware\Neo4j\OGM\Persister;
 
-use GraphAware\Common\Cypher\Statement;
+use Laudis\Neo4j\Databags\Statement;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
 
 class RelationshipPersister

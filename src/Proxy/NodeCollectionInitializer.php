@@ -11,12 +11,11 @@
 
 namespace GraphAware\Neo4j\OGM\Proxy;
 
-use GraphAware\Common\Type\Node;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
 
 class NodeCollectionInitializer extends SingleNodeInitializer
 {
-    public function initialize(Node $node, $baseInstance)
+    public function initialize($baseInstance)
     {
         $persister = $this->em->getEntityPersister($this->metadata->getClassName());
         $persister->getSimpleRelationshipCollection($this->relationshipMetadata->getPropertyName(), $baseInstance);

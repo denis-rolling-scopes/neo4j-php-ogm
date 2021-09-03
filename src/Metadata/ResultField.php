@@ -13,67 +13,40 @@ namespace GraphAware\Neo4j\OGM\Metadata;
 
 class ResultField
 {
-    const FIELD_TYPE_ENTITY = 'ENTITY';
+    private const FIELD_TYPE_ENTITY = 'ENTITY';
 
-    protected $fieldName;
+    protected ?ClassMetadata $targetMetadata;
 
-    protected $fieldType;
-
-    protected $target;
-
-    /**
-     * @var null|\GraphAware\Neo4j\OGM\Metadata\ClassMetadata
-     */
-    protected $targetMetadata;
-
-    public function __construct($fieldName, $fieldType, $target)
+    public function __construct(protected $fieldName, protected $fieldType, protected $target)
     {
-        $this->fieldName = $fieldName;
-        $this->fieldType = $fieldType;
-        $this->target = $target;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getFieldName()
+    public function getFieldName(): mixed
     {
         return $this->fieldName;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getFieldType()
+    public function getFieldType(): mixed
     {
         return $this->fieldType;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getTarget()
+    public function getTarget(): mixed
     {
         return $this->target;
     }
 
-    public function isEntity()
+    public function isEntity(): bool
     {
         return $this->fieldType === self::FIELD_TYPE_ENTITY;
     }
 
-    /**
-     * @param \GraphAware\Neo4j\OGM\Metadata\GraphEntityMetadata $metadata
-     */
-    public function setMetadata(GraphEntityMetadata $metadata)
+    public function setMetadata(ClassMetadata $metadata)
     {
         $this->targetMetadata = $metadata;
     }
 
-    /**
-     * @return \GraphAware\Neo4j\OGM\Metadata\ClassMetadata|null
-     */
-    public function getTargetMetadata()
+    public function getTargetMetadata(): ?ClassMetadata
     {
         return $this->targetMetadata;
     }

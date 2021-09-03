@@ -27,6 +27,7 @@ use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\Movie;
 use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\MovieRepository;
 use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\Person;
 use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\Rating;
+use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,15 +37,9 @@ use PHPUnit\Framework\TestCase;
  */
 class GraphEntityMetadataFactoryTest extends TestCase
 {
-    /**
-     * @var AnnotationGraphEntityMetadataFactory
-     */
-    private $annotationMetadataFactory;
+    private AnnotationGraphEntityMetadataFactory $annotationMetadataFactory;
 
-    /**
-     * @var XmlGraphEntityMetadataFactory
-     */
-    private $xmlMetadataFactory;
+    private XmlGraphEntityMetadataFactory $xmlMetadataFactory;
 
     protected function setUp(): void
     {
@@ -113,6 +108,7 @@ class GraphEntityMetadataFactoryTest extends TestCase
             }
         }
         libxml_use_internal_errors($previous);
+        $this->addToAssertionCount(1);
     }
 
     /**

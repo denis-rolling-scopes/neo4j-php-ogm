@@ -20,61 +20,24 @@ use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 
 class BaseRepository implements ObjectRepository, Selectable
 {
-    /**
-     * @var \GraphAware\Neo4j\OGM\Metadata\ClassMetadata
-     */
-    protected $classMetadata;
-
-    /**
-     * @var \GraphAware\Neo4j\OGM\EntityManager
-     */
-    protected $entityManager;
-
-    /**
-     * @var string
-     */
-    protected $className;
-
-    /**
-     *
-     * @param NodeEntityMetadata $classMetadata
-     * @param EntityManager      $manager
-     * @param string             $className
-     */
-    public function __construct(NodeEntityMetadata $classMetadata, EntityManager $manager, $className)
-    {
-        $this->classMetadata = $classMetadata;
-        $this->entityManager = $manager;
-        $this->className = $className;
+    public function __construct(
+        protected NodeEntityMetadata $classMetadata,
+        protected EntityManager $entityManager,
+        protected string $className
+    ) {
     }
 
-    /**
-     * @param int $id
-     *
-     * @return null|object
-     */
-    public function find($id)
+    public function find($id): ?object
     {
         return $this->findOneById($id);
     }
 
-    /**
-     * @return array
-     */
-    public function findAll()
+    public function findAll(): array
     {
         return $this->findBy([]);
     }
 
-    /**
-     * @param array      $criteria
-     * @param array|null $orderBy
-     * @param null|int   $limit
-     * @param null|int   $offset
-     *
-     * @return array
-     */
-    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null): array
     {
         $persister = $this->entityManager->getEntityPersister($this->className);
 
@@ -99,7 +62,7 @@ class BaseRepository implements ObjectRepository, Selectable
      *
      * @return object|null
      */
-    public function findOneById($id)
+    public function findOneById(int $id): ?object
     {
         $persister = $this->entityManager->getEntityPersister($this->className);
 
@@ -111,14 +74,14 @@ class BaseRepository implements ObjectRepository, Selectable
      *
      * @return array
      */
-    public function matching(Criteria $criteria)
+    public function matching(Criteria $criteria): array
     {
         $clause = [];
         /** @var Comparison $whereClause */
         $whereClause = $criteria->getWhereExpression();
         if (null !== $whereClause) {
             if (Comparison::EQ !== $whereClause->getOperator()) {
-                throw new \InvalidArgumentException(sprintf('Support for Selectable is limited to the EQUALS "=" operator, 
+                throw new \InvalidArgumentException(sprintf('Support for Selectable is limited to the EQUALS "=" operator,
                  % given', $whereClause->getOperator()));
             }
 
@@ -131,7 +94,7 @@ class BaseRepository implements ObjectRepository, Selectable
     /**
      * @return string
      */
-    public function getClassName()
+    public function getClassName(): string
     {
         return $this->className;
     }

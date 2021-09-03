@@ -11,7 +11,7 @@
 
 namespace GraphAware\Neo4j\OGM\Persister;
 
-use GraphAware\Common\Cypher\Statement;
+use Laudis\Neo4j\Databags\Statement;
 use GraphAware\Neo4j\OGM\Converters\Converter;
 use GraphAware\Neo4j\OGM\EntityManager;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
@@ -24,7 +24,7 @@ class RelationshipEntityPersister
     protected $class;
 
     /**
-     * @var \GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata
+     * @var RelationshipEntityMetadata
      */
     protected $classMetadata;
 
@@ -62,22 +62,7 @@ class RelationshipEntityPersister
             $parameters['fields'][$fieldKey] = $v;
         }
 
-        foreach ($this->classMetadata->getPropertiesMetadata() as $field => $meta) {
-            $fieldId = $this->classMetadata->getClassName().$field;
-            $fieldKey = $field;
-
-            if ($meta->getPropertyAnnotationMetadata()->hasCustomKey()) {
-                $fieldKey = $meta->getPropertyAnnotationMetadata()->getKey();
-            }
-
-            if ($meta->hasConverter()) {
-                $converter = Converter::getConverter($meta->getConverterType(), $fieldId);
-                $v = $converter->toDatabaseValue($meta->getValue($entity), $meta->getConverterOptions());
-                $parameters['fields'][$fieldKey] = $v;
-            } else {
-                $parameters['fields'][$fieldKey] = $meta->getValue($entity);
-            }
-        }
+        $parameters = $this->getParameters($entity, $parameters);
 
         $query = 'MATCH (a), (b) WHERE id(a) = {a} AND id(b) = {b}'.PHP_EOL;
         $query .= sprintf('CREATE (a)-[r:%s]->(b)', $relType).PHP_EOL;
@@ -100,8 +85,29 @@ class RelationshipEntityPersister
             'fields' => [],
         ];
 
+        $parameters = $this->getParameters($entity, $parameters);
+
+        return Statement::create($query, $parameters);
+    }
+
+    public function getDeleteQuery($entity)
+    {
+        $id = $this->classMetadata->getIdValue($entity);
+        $query = 'START rel=rel('.$id.') DELETE rel RETURN {oid} AS oid';
+        $params = ['oid' => spl_object_hash($entity)];
+
+        return Statement::create($query, $params);
+    }
+
+    /**
+     * @param $entity
+     * @param array $parameters
+     * @return array
+     */
+    public function getParameters($entity, array $parameters): array
+    {
         foreach ($this->classMetadata->getPropertiesMetadata() as $field => $meta) {
-            $fieldId = $this->classMetadata->getClassName().$field;
+            $fieldId = $this->classMetadata->getClassName() . $field;
             $fieldKey = $field;
 
             if ($meta->getPropertyAnnotationMetadata()->hasCustomKey()) {
@@ -116,16 +122,6 @@ class RelationshipEntityPersister
                 $parameters['fields'][$fieldKey] = $meta->getValue($entity);
             }
         }
-
-        return Statement::create($query, $parameters);
-    }
-
-    public function getDeleteQuery($entity)
-    {
-        $id = $this->classMetadata->getIdValue($entity);
-        $query = 'START rel=rel('.$id.') DELETE rel RETURN {oid} AS oid';
-        $params = ['oid' => spl_object_hash($entity)];
-
-        return Statement::create($query, $params);
+        return $parameters;
     }
 }
