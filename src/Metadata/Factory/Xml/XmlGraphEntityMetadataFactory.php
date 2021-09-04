@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -15,13 +17,14 @@ use Doctrine\Common\Persistence\Mapping\Driver\FileLocator;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Metadata\Factory\GraphEntityMetadataFactoryInterface;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
+use GraphAware\Neo4j\OGM\Metadata\QueryResultMapper;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
 
 class XmlGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInterface
 {
     public function __construct(
-        private FileLocator                       $fileLocator,
-        private NodeEntityMetadataFactory         $nodeEntityMetadataFactory,
+        private FileLocator $fileLocator,
+        private NodeEntityMetadataFactory $nodeEntityMetadataFactory,
         private RelationshipEntityMetadataFactory $relationshipEntityMetadataFactory
     ) {
     }
@@ -49,9 +52,10 @@ class XmlGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInterfa
         return $this->fileLocator->fileExists($className);
     }
 
-    public function createQueryResultMapper($className)
+    public function createQueryResultMapper($className): ?QueryResultMapper
     {
         // TODO: Implement createQueryResultMapper() method.
+        return null;
     }
 
     public function supportsQueryResult($className): bool
@@ -66,10 +70,6 @@ class XmlGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInterfa
         return new \SimpleXMLElement(file_get_contents($filename));
     }
 
-    /**
-     * @param \SimpleXMLElement $element
-     * @param string $className
-     */
     private function validateEntityClass(\SimpleXMLElement $element, string $className)
     {
         if (!isset($element['entity']) || (string)$element['entity'] !== $className) {

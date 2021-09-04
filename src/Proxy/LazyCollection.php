@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -17,10 +19,6 @@ use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
 
 class LazyCollection extends AbstractLazyCollection
 {
-    private SingleNodeInitializer $initializer;
-
-    private $object;
-
     private bool $initializing = false;
 
     private array $added = [];
@@ -29,14 +27,12 @@ class LazyCollection extends AbstractLazyCollection
 
     private $initialCount;
 
-    private RelationshipMetadata $relationshipMetadata;
-
-    public function __construct(SingleNodeInitializer $initializer, $object, RelationshipMetadata $relationshipMetadata)
-    {
-        $this->initializer = $initializer;
-        $this->object = $object;
+    public function __construct(
+        private SingleNodeInitializer $initializer,
+        private $object,
+        private RelationshipMetadata $relationshipMetadata
+    ) {
         $this->collection = new Collection();
-        $this->relationshipMetadata = $relationshipMetadata;
     }
 
     protected function doInitialize()

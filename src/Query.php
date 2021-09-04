@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -99,7 +101,6 @@ class Query
             $keys = $record->keys();
 
             foreach ($keys as $key) {
-
                 $mode = array_key_exists($key, $this->mappings) ? $this->mappings[$key][1] : self::HYDRATE_RAW;
 
                 if ($mode === self::HYDRATE_SINGLE) {
@@ -137,10 +138,10 @@ class Query
      * in that case "cols" is collection of maps and should be mapped as
      * addEntityMapping('cols', null, Query::HYDRATE_MAP_COLLECTION);
      *
-     * @param $map
+     * @param CypherList $map
      * @return array
      */
-    private function hydrateMapCollection($map): array
+    private function hydrateMapCollection(CypherList $map): array
     {
         $row = [];
         foreach ($map as $value) {
@@ -158,7 +159,7 @@ class Query
      * addEntityMapping('col', null, Query::HYDRATE_MAP);
      * addEntityMapping('data', OtherNode::class, Query::HYDRATE_COLLECTION);
      *
-     * @param $map array
+     * @param array $map
      * @return array
      */
     private function hydrateMap(array $map): array

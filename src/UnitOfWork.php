@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -161,10 +163,12 @@ class UnitOfWork
                     ? $this->entityManager->getRelationshipEntityMetadata($relationship->getRelationshipEntityClass())
                         ->getType()
                     : $relationship->getType();
-                $hashStr = $aMeta->getIdValue($entityA) . $bMeta->getIdValue($entityB) . $type . $relationship->getDirection();
+                $hashStr =
+                    $aMeta->getIdValue($entityA) . $bMeta->getIdValue($entityB) . $type . $relationship->getDirection();
                 $hash = md5($hashStr);
                 if (!array_key_exists($hash, $this->relationshipsScheduledForCreated)) {
-                    $this->relationshipsScheduledForCreated[] = [$entityA, $relationship, $e, $relationship->getPropertyName()];
+                    $this->relationshipsScheduledForCreated[] =
+                        [$entityA, $relationship, $e, $relationship->getPropertyName()];
                 }
                 $this->doPersist($e, $visited);
             }
@@ -172,7 +176,8 @@ class UnitOfWork
             return;
         }
         $this->doPersist($entityB, $visited);
-        $this->relationshipsScheduledForCreated[] = [$entityA, $relationship, $entityB, $relationship->getPropertyName()];
+        $this->relationshipsScheduledForCreated[] =
+            [$entityA, $relationship, $entityB, $relationship->getPropertyName()];
     }
 
     public function flush()
@@ -351,13 +356,19 @@ class UnitOfWork
                 foreach ($value as $v) {
                     $this->persistRelationshipEntity($v, get_class($entity));
                     $rem = $this->entityManager->getRelationshipEntityMetadata(get_class($v));
-                    $toPersistProperty = $rem->getStartNode() === $classMetadata->getClassName() ? $rem->getEndNodeValue($v) : $rem->getStartNodeValue($v);
+                    $toPersistProperty =
+                        $rem->getStartNode() === $classMetadata->getClassName()
+                            ? $rem->getEndNodeValue($v)
+                            : $rem->getStartNodeValue($v);
                     $this->doPersist($toPersistProperty, $visited);
                 }
             } else {
                 $this->persistRelationshipEntity($value, get_class($entity));
                 $rem = $this->entityManager->getRelationshipEntityMetadata(get_class($value));
-                $toPersistProperty = $rem->getStartNode() === $classMetadata->getClassName() ? $rem->getEndNodeValue($value) : $rem->getStartNodeValue($value);
+                $toPersistProperty =
+                    $rem->getStartNode() === $classMetadata->getClassName()
+                        ? $rem->getEndNodeValue($value)
+                        : $rem->getStartNodeValue($value);
                 $this->doPersist($toPersistProperty, $visited);
             }
         }
@@ -452,7 +463,8 @@ class UnitOfWork
     {
         if (!array_key_exists($class, $this->relationshipEntityPersisters)) {
             $classMetadata = $this->entityManager->getRelationshipEntityMetadata($class);
-            $this->relationshipEntityPersisters[$class] = new RelationshipEntityPersister($this->entityManager, $class, $classMetadata);
+            $this->relationshipEntityPersisters[$class] =
+                new RelationshipEntityPersister($this->entityManager, $class, $classMetadata);
         }
 
         return $this->relationshipEntityPersisters[$class];
@@ -475,7 +487,8 @@ class UnitOfWork
         $this->reEntityIds[$oid] = $gid;
         $this->reEntitiesById[$gid] = $this->relEntitiesScheduledForCreate[$oid][0];
         $this->relationshipEntityReferences[$gid] = clone $this->relEntitiesScheduledForCreate[$oid][0];
-        $this->reOriginalData[$oid] = $this->getOriginalRelationshipEntityData($this->relEntitiesScheduledForCreate[$oid][0]);
+        $this->reOriginalData[$oid] =
+            $this->getOriginalRelationshipEntityData($this->relEntitiesScheduledForCreate[$oid][0]);
     }
 
     /**
@@ -483,12 +496,12 @@ class UnitOfWork
      *
      * @param object $entity
      *
-     * @return object The managed copy of the entity
+     * @return object|null The managed copy of the entity
      */
-    public function merge(object $entity)
+    public function merge(object $entity): ?object
     {
         // TODO write me
-        trigger_error('Function not implemented.', E_USER_ERROR);
+        return null;
     }
 
     /**
@@ -732,6 +745,7 @@ class UnitOfWork
      */
     private function cascadeDetach(object $entity, array &$visited): void
     {
+        /** @var NodeEntityMetadata $class */
         $class = $this->entityManager->getClassMetadata(get_class($entity));
 
         foreach ($class->getRelationships() as $relationship) {
@@ -785,6 +799,7 @@ class UnitOfWork
      */
     private function cascadeRefresh(object $entity, array &$visited): void
     {
+        /** @var NodeEntityMetadata $class */
         $class = $this->entityManager->getClassMetadata(get_class($entity));
 
         foreach ($class->getRelationships() as $relationship) {
@@ -832,7 +847,8 @@ class UnitOfWork
             $oid = spl_object_hash($nodeToCreate);
             $this->traverseRelationshipEntities($nodeToCreate);
             $persister = $this->getPersister($nodeToCreate::class);
-            $result = $this->entityManager->getDatabaseDriver()->runStatement($persister->getCreateQuery($nodeToCreate));
+            $result = $this->entityManager->getDatabaseDriver()
+                ->runStatement($persister->getCreateQuery($nodeToCreate));
             foreach ($result->toArray() as $record) {
                 $gid = $record->get('id');
                 $this->hydrateGraphId($oid, $gid);

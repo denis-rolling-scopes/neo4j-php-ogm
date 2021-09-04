@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -11,6 +13,7 @@
 
 namespace GraphAware\Neo4j\OGM\Repository;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\Common\Collections\Selectable;
@@ -44,24 +47,13 @@ class BaseRepository implements ObjectRepository, Selectable
         return $persister->loadAll($criteria, $orderBy, $limit, $offset);
     }
 
-    /**
-     * @param array      $criteria
-     * @param array|null $orderBy
-     *
-     * @return object|null
-     */
-    public function findOneBy(array $criteria, array $orderBy = null)
+    public function findOneBy(array $criteria, array $orderBy = null): array|object|null
     {
         $persister = $this->entityManager->getEntityPersister($this->className);
 
         return $persister->load($criteria);
     }
 
-    /**
-     * @param int $id
-     *
-     * @return object|null
-     */
     public function findOneById(int $id): ?object
     {
         $persister = $this->entityManager->getEntityPersister($this->className);
@@ -69,12 +61,7 @@ class BaseRepository implements ObjectRepository, Selectable
         return $persister->loadOneById($id);
     }
 
-    /**
-     * @param Criteria $criteria
-     *
-     * @return array
-     */
-    public function matching(Criteria $criteria): array
+    public function matching(Criteria $criteria): array|Collection
     {
         $clause = [];
         /** @var Comparison $whereClause */
@@ -91,9 +78,6 @@ class BaseRepository implements ObjectRepository, Selectable
         return $this->findBy($clause, $criteria->getOrderings(), $criteria->getMaxResults(), $criteria->getFirstResult());
     }
 
-    /**
-     * @return string
-     */
     public function getClassName(): string
     {
         return $this->className;

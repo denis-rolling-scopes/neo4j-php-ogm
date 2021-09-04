@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -17,13 +19,7 @@ namespace GraphAware\Neo4j\OGM\Annotations;
  */
 final class RelationshipEntity implements Entity
 {
-    /**
-     * @var string
-     */
-    public $type;
+    public string $type;
 
-    /**
-     * @Enum({"INCOMING","OUTGOING"})
-     */
-    public $direction;
+    public ?string $direction;
 }

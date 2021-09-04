@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -19,26 +21,14 @@ namespace GraphAware\Neo4j\OGM\Exception;
  */
 class OGMInvalidArgumentException extends \InvalidArgumentException
 {
-    /**
-     * @param object $entity
-     *
-     * @return OGMInvalidArgumentException
-     */
-    public static function entityNotManaged($entity)
+    public static function entityNotManaged(object $entity): OGMInvalidArgumentException
     {
-        return new self('Entity '.self::objectToString($entity).' is not managed. An entity is managed if its fetched '.
-            'from the database or registered as new through EntityManager#persist');
+        return new self('Entity ' . self::objectToString($entity) . ' is not managed. An entity is managed if ' .
+            'its fetched from the database or registered as new through EntityManager#persist');
     }
 
-    /**
-     * Helper method to show an object as string.
-     *
-     * @param object $obj
-     *
-     * @return string
-     */
-    private static function objectToString($obj)
+    private static function objectToString(object $obj): string
     {
-        return method_exists($obj, '__toString') ? (string) $obj : get_class($obj).'@'.spl_object_hash($obj);
+        return method_exists($obj, '__toString') ? (string) $obj : get_class($obj) . '@' . spl_object_hash($obj);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -14,12 +16,12 @@ namespace GraphAware\Neo4j\OGM;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\FileCacheReader;
 use Doctrine\Common\EventManager;
+use Doctrine\Persistence\Mapping\ClassMetadata;
 use GraphAware\Neo4j\OGM\Converters\Converter;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Hydrator\EntityHydrator;
 use GraphAware\Neo4j\OGM\Metadata\Factory\Annotation\AnnotationGraphEntityMetadataFactory;
 use GraphAware\Neo4j\OGM\Metadata\Factory\GraphEntityMetadataFactoryInterface;
-use GraphAware\Neo4j\OGM\Metadata\GraphEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\QueryResultMapper;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
@@ -32,40 +34,19 @@ use Laudis\Neo4j\Contracts\ClientInterface;
 
 class EntityManager implements EntityManagerInterface
 {
-    /**
-     * @var UnitOfWork
-     */
-    protected $uow;
+    protected ?UnitOfWork $uow;
 
-    /**
-     * @var BaseRepository[]
-     */
-    protected $repositories = [];
+    protected array $repositories = [];
 
-    /**
-     * @var QueryResultMapper[]
-     */
-    protected $resultMappers = [];
+    protected array $resultMappers = [];
 
-    /**
-     * @var GraphEntityMetadata[]|RelationshipEntityMetadata[]
-     */
-    protected $loadedMetadata = [];
+    protected array $loadedMetadata = [];
 
-    /**
-     * @var string
-     */
-    protected $proxyDirectory;
+    protected string $proxyDirectory;
 
-    /**
-     * @var array
-     */
-    protected $proxyFactories = [];
+    protected array $proxyFactories = [];
 
-    /**
-     * @var array
-     */
-    protected $entityHydrators = [];
+    protected array $entityHydrators = [];
 
     public function __construct(
         protected ClientInterface $databaseDriver,
@@ -99,7 +80,7 @@ class EntityManager implements EntityManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function find($className, $id)
+    public function find($className, $id): ?object
     {
         return $this->getRepository($className)->findOneById($id);
     }
@@ -115,7 +96,7 @@ class EntityManager implements EntityManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function merge($entity)
+    public function merge($entity): object
     {
         if (!is_object($entity)) {
             throw new \Exception('EntityManager::merge() expects an object');
@@ -148,10 +129,7 @@ class EntityManager implements EntityManagerInterface
         $this->uow->refresh($entity);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getClassMetadata($className)
+    public function getClassMetadata($className): ClassMetadata
     {
         if (array_key_exists($className, $this->loadedMetadata)) {
             return $this->loadedMetadata[$className];
@@ -160,10 +138,7 @@ class EntityManager implements EntityManagerInterface
         return $this->metadataFactory->create($className);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getMetadataFactory()
+    public function getMetadataFactory(): GraphEntityMetadataFactoryInterface
     {
         return $this->metadataFactory;
     }
@@ -245,14 +220,7 @@ class EntityManager implements EntityManagerInterface
         return $this->loadedMetadata[$class];
     }
 
-    /**
-     * @param string $class
-     *
-     * @throws \Exception
-     *
-     * @return RelationshipEntityMetadata
-     */
-    public function getRelationshipEntityMetadata($class)
+    public function getRelationshipEntityMetadata(string $class): RelationshipEntityMetadata
     {
         if (!array_key_exists($class, $this->loadedMetadata)) {
             $metadata = $this->metadataFactory->create($class);
@@ -266,11 +234,6 @@ class EntityManager implements EntityManagerInterface
         return $this->loadedMetadata[$class];
     }
 
-    /**
-     * @param string $class
-     *
-     * @return BaseRepository
-     */
     public function getRepository($class): BaseRepository
     {
         $classMetadata = $this->getClassMetadataFor($class);
@@ -302,11 +265,6 @@ class EntityManager implements EntityManagerInterface
         trigger_error('The EntityManager::getAnnotationDriver is not yet implemented', E_USER_ERROR);
     }
 
-    /**
-     * @param NodeEntityMetadata $entityMetadata
-     *
-     * @return ProxyFactory
-     */
     public function getProxyFactory(NodeEntityMetadata $entityMetadata): ProxyFactory
     {
         if (!array_key_exists($entityMetadata->getClassName(), $this->proxyFactories)) {

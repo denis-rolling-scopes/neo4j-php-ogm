@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -17,9 +19,9 @@ class ProxyUtils
     {
         $key = null;
         if ($reflectionProperty->isPrivate()) {
-            $key = '\\0'.$className.'\\0'.$reflectionProperty->getName();
+            $key = '\\0' . $className . '\\0' . $reflectionProperty->getName();
         } elseif ($reflectionProperty->isProtected()) {
-            $key = ''."\0".'*'."\0".$reflectionProperty->getName();
+            $key = '' . "\0" . '*' . "\0" . $reflectionProperty->getName();
         } elseif ($reflectionProperty->isPublic()) {
             $key = $reflectionProperty->getName();
         }

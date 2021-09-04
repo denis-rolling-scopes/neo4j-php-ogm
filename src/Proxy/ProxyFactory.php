@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -48,7 +50,6 @@ class ProxyFactory
                 if (!in_array($relationshipEntity->getPropertyName(), $mappedByProperties, true)) {
                     $initializer = new RelationshipEntityInitializer($this->em, $relationshipEntity, $this->classMetadata);
                     $initializers[$relationshipEntity->getPropertyName()] = $initializer;
-
                 }
             } else {
                 if (!in_array($relationshipEntity->getPropertyName(), $mappedByProperties, true)) {
@@ -78,7 +79,7 @@ class ProxyFactory
     {
         $class = $this->classMetadata->getClassName();
         $proxyClass = $this->getProxyClass();
-        $proxyFile = $this->proxyDir.'/'.$proxyClass.'.php';
+        $proxyFile = $this->proxyDir . '/' . $proxyClass . '.php';
         $methodProxies = $this->getMethodProxies();
 
         $content = <<<PROXY
@@ -143,17 +144,17 @@ PROXY;
             if ($relationship->isFetch()) {
                 continue;
             }
-            $getter = 'get'.ucfirst($relationship->getPropertyName()).'()';
+            $getter = 'get' . ucfirst($relationship->getPropertyName()) . '()';
             $returnStr = $getter;
 
             if (PHP_VERSION_ID > 70000) {
                 $reflClass = new ReflectionClass($this->classMetadata->getClassName());
-                $g = 'get'.ucfirst($relationship->getPropertyName());
+                $g = 'get' . ucfirst($relationship->getPropertyName());
                 if ($reflClass->hasMethod($g)) {
                     $reflMethod = $reflClass->getMethod($g);
                     if ($reflMethod->hasReturnType()) {
                         $rt = $reflMethod->getReturnType();
-                        $getter .= ': '. ($rt->allowsNull() ? ' ?' : '')
+                        $getter .= ': ' . ($rt->allowsNull() ? ' ?' : '')
                             . ($rt instanceof ReflectionNamedType
                                 ? $rt->getName()
                                 // for PHP > 8.0
@@ -161,7 +162,7 @@ PROXY;
                                     "|",
                                     array_reduce(
                                         $rt->getTypes(),
-                                        function(array $mixedTypes, ReflectionNamedType $type): array {
+                                        function (array $mixedTypes, ReflectionNamedType $type): array {
                                             $mixedTypes[] = $type->getName();
                                             return $mixedTypes;
                                         },
@@ -189,7 +190,7 @@ METHOD;
 
     protected function getProxyClass(): string
     {
-        return 'neo4j_ogm_proxy_'.str_replace('\\', '_', $this->classMetadata->getClassName());
+        return 'neo4j_ogm_proxy_' . str_replace('\\', '_', $this->classMetadata->getClassName());
     }
 
     private function getInitializerFor(RelationshipMetadata $relationship)
@@ -200,7 +201,7 @@ METHOD;
             $initializer = new NodeCollectionInitializer($this->em, $relationship, $this->classMetadata);
         }
 
-        return $initializer;
+        return $initializer ?? null;
     }
 
     private function newProxyInstance($proxyClass)

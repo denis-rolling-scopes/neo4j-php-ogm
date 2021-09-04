@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -11,28 +13,30 @@
 
 namespace GraphAware\Neo4j\OGM\Converters;
 
+use DateTime;
+use DateTimeZone;
+use Exception;
 use GraphAware\Neo4j\OGM\Exception\ConverterException;
 
 class DateTimeConverter extends Converter
 {
-    const DEFAULT_FORMAT = 'timestamp';
+    private const DEFAULT_FORMAT = 'timestamp';
 
-    const LONG_TIMESTAMP_FORMAT = 'long_timestamp';
+    private const LONG_TIMESTAMP_FORMAT = 'long_timestamp';
 
-    public function getName()
+    public function getName(): string
     {
         return 'datetime';
     }
 
-    public function toDatabaseValue($value, array $options)
+    public function toDatabaseValue($value, array $options): float|int|string|null
     {
         if (null === $value) {
-            return $value;
+            return null;
         }
 
-        if ($value instanceof \DateTime) {
-
-            $format = isset($options['format']) ? $options['format'] : self::DEFAULT_FORMAT;
+        if ($value instanceof DateTime) {
+            $format = $options['format'] ?? self::DEFAULT_FORMAT;
 
             if (self::DEFAULT_FORMAT === $format) {
                 return $value->getTimestamp();
@@ -44,36 +48,35 @@ class DateTimeConverter extends Converter
 
             try {
                 return $value->format($format);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new ConverterException(sprintf('Error while converting timestamp: %s', $e->getMessage()));
             }
-
         }
 
         throw new ConverterException(sprintf('Unable to convert value in converter "%s"', $this->getName()));
     }
 
-    public function toPHPValue(array $values, array $options)
+    public function toPHPValue(array $values, array $options): DateTime|bool|null
     {
-        if (!isset($values[$this->propertyName]) || null === $values[$this->propertyName]) {
+        if (!isset($values[$this->propertyName])) {
             return null;
         }
 
-        $tz = isset($options['timezone']) ? new \DateTimeZone($options['timezone']) : new \DateTimeZone(date_default_timezone_get());
+        $tz = isset($options['timezone'])
+            ? new DateTimeZone($options['timezone'])
+            : new DateTimeZone(date_default_timezone_get());
 
-        $format = isset($options['format']) ? $options['format'] : self::DEFAULT_FORMAT;
+        $format = $options['format'] ?? self::DEFAULT_FORMAT;
         $v = $values[$this->propertyName];
 
         if (self::DEFAULT_FORMAT === $format) {
-            return \DateTime::createFromFormat('U', $v, $tz);
+            return DateTime::createFromFormat('U', $v, $tz);
         }
 
         if (self::LONG_TIMESTAMP_FORMAT === $format) {
-            return \DateTime::createFromFormat('U', round($v/1000), $tz);
+            return DateTime::createFromFormat('U', (string)round($v / 1000), $tz);
         }
 
-        return \DateTime::createFromFormat($format, $v);
-
+        return DateTime::createFromFormat($format, $v);
     }
-
 }

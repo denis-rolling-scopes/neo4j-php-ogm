@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -11,61 +13,30 @@
 
 namespace GraphAware\Neo4j\OGM\Metadata;
 
+use ReflectionProperty;
+
 final class EntityIdMetadata
 {
-    /**
-     * @var string
-     */
-    private $propertyName;
-
-    /**
-     * @var \ReflectionProperty
-     */
-    private $reflectionProperty;
-
-    /**
-     * @var \GraphAware\Neo4j\OGM\Metadata\IdAnnotationMetadata
-     */
-    private $idAnnotationMetadata;
-
-    /**
-     * @param string                                              $propertyName
-     * @param \ReflectionProperty                                 $reflectionProperty
-     * @param \GraphAware\Neo4j\OGM\Metadata\IdAnnotationMetadata $idAnnotationMetadata
-     */
-    public function __construct($propertyName, \ReflectionProperty $reflectionProperty, IdAnnotationMetadata $idAnnotationMetadata)
-    {
-        $this->propertyName = $propertyName;
-        $this->reflectionProperty = $reflectionProperty;
-        $this->idAnnotationMetadata = $idAnnotationMetadata;
+    public function __construct(
+        private string $propertyName,
+        private ReflectionProperty $reflectionProperty,
+    ) {
     }
 
-    /**
-     * @param $object
-     *
-     * @return mixed
-     */
-    public function getValue($object)
+    public function getValue($object): mixed
     {
         $this->reflectionProperty->setAccessible(true);
 
         return $this->reflectionProperty->getValue($object);
     }
 
-    /**
-     * @param $object
-     * @param $value
-     */
     public function setValue($object, $value)
     {
         $this->reflectionProperty->setAccessible(true);
         $this->reflectionProperty->setValue($object, $value);
     }
 
-    /**
-     * @return string
-     */
-    public function getPropertyName()
+    public function getPropertyName(): string
     {
         return $this->propertyName;
     }

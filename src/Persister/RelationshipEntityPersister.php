@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -19,39 +21,30 @@ use GraphAware\Neo4j\OGM\Util\ClassUtils;
 
 class RelationshipEntityPersister
 {
-    protected $em;
-
-    protected $class;
-
-    /**
-     * @var RelationshipEntityMetadata
-     */
-    protected $classMetadata;
-
-    public function __construct(EntityManager $manager, $className, RelationshipEntityMetadata $classMetadata)
-    {
-        $this->em = $manager;
-        $this->class = $className;
-        $this->classMetadata = $classMetadata;
+    public function __construct(
+        protected EntityManager $manager,
+        protected string $className,
+        protected RelationshipEntityMetadata $classNameMetadata
+    ) {
     }
 
-    public function getCreateQuery($entity, $pov)
+    public function getCreateQuery($entity, $pov): Statement
     {
         $class = ClassUtils::getFullClassName(get_class($entity), $pov);
-        $relationshipEntityMetadata = $this->em->getRelationshipEntityMetadata($class);
+        $relationshipEntityMetadata = $this->manager->getRelationshipEntityMetadata($class);
         $startNode = $relationshipEntityMetadata->getStartNodeValue($entity);
-        $startNodeId = $this->em->getClassMetadataFor(get_class($startNode))->getIdValue($startNode);
+        $startNodeId = $this->manager->getClassMetadataFor(get_class($startNode))->getIdValue($startNode);
         $endNode = $relationshipEntityMetadata->getEndNodeValue($entity);
-        $endNodeId = $this->em->getClassMetadataFor(get_class($endNode))->getIdValue($endNode);
+        $endNodeId = $this->manager->getClassMetadataFor(get_class($endNode))->getIdValue($endNode);
 
-        $relType = $this->classMetadata->getType();
+        $relType = $this->classNameMetadata->getType();
         $parameters = [
             'a' => $startNodeId,
             'b' => $endNodeId,
             'fields' => [],
         ];
 
-        foreach ($this->classMetadata->getPropertiesMetadata() as $field => $propertyMetadata) {
+        foreach ($this->classNameMetadata->getPropertiesMetadata() as $field => $propertyMetadata) {
             $v = $propertyMetadata->getValue($entity);
             $fieldKey = $field;
 
@@ -64,8 +57,8 @@ class RelationshipEntityPersister
 
         $parameters = $this->getParameters($entity, $parameters);
 
-        $query = 'MATCH (a), (b) WHERE id(a) = {a} AND id(b) = {b}'.PHP_EOL;
-        $query .= sprintf('CREATE (a)-[r:%s]->(b)', $relType).PHP_EOL;
+        $query = 'MATCH (a), (b) WHERE id(a) = {a} AND id(b) = {b}' . PHP_EOL;
+        $query .= sprintf('CREATE (a)-[r:%s]->(b)', $relType) . PHP_EOL;
         if (!empty($parameters['fields'])) {
             $query .= 'SET r += {fields} ';
         }
@@ -75,9 +68,9 @@ class RelationshipEntityPersister
         return Statement::create($query, $parameters);
     }
 
-    public function getUpdateQuery($entity)
+    public function getUpdateQuery($entity): Statement
     {
-        $id = $this->classMetadata->getIdValue($entity);
+        $id = $this->classNameMetadata->getIdValue($entity);
 
         $query = sprintf('MATCH ()-[rel]->() WHERE id(rel) = %d SET rel += {fields}', $id);
 
@@ -90,24 +83,19 @@ class RelationshipEntityPersister
         return Statement::create($query, $parameters);
     }
 
-    public function getDeleteQuery($entity)
+    public function getDeleteQuery($entity): Statement
     {
-        $id = $this->classMetadata->getIdValue($entity);
-        $query = 'START rel=rel('.$id.') DELETE rel RETURN {oid} AS oid';
+        $id = $this->classNameMetadata->getIdValue($entity);
+        $query = 'START rel=rel(' . $id . ') DELETE rel RETURN {oid} AS oid';
         $params = ['oid' => spl_object_hash($entity)];
 
         return Statement::create($query, $params);
     }
 
-    /**
-     * @param $entity
-     * @param array $parameters
-     * @return array
-     */
     public function getParameters($entity, array $parameters): array
     {
-        foreach ($this->classMetadata->getPropertiesMetadata() as $field => $meta) {
-            $fieldId = $this->classMetadata->getClassName() . $field;
+        foreach ($this->classNameMetadata->getPropertiesMetadata() as $field => $meta) {
+            $fieldId = $this->classNameMetadata->getClassName() . $field;
             $fieldKey = $field;
 
             if ($meta->getPropertyAnnotationMetadata()->hasCustomKey()) {

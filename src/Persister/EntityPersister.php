@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -31,7 +33,7 @@ class EntityPersister
         $extraLabels = [];
         $removeLabels = [];
         foreach ($this->classMetadata->getPropertiesMetadata() as $field => $meta) {
-            $fieldId = $this->classMetadata->getClassName().$field;
+            $fieldId = $this->classMetadata->getClassName() . $field;
             $fieldKey = $field;
 
             if ($meta->getPropertyAnnotationMetadata()->hasCustomKey()) {
@@ -61,12 +63,12 @@ class EntityPersister
         }
         if (!empty($extraLabels)) {
             foreach ($extraLabels as $label) {
-                $query .= ' SET n:'.$label;
+                $query .= ' SET n:' . $label;
             }
         }
         if (!empty($removeLabels)) {
             foreach ($removeLabels as $label) {
-                $query .= ' REMOVE n:'.$label;
+                $query .= ' REMOVE n:' . $label;
             }
         }
 
@@ -81,7 +83,7 @@ class EntityPersister
         $extraLabels = [];
         $removeLabels = [];
         foreach ($this->classMetadata->getPropertiesMetadata() as $field => $meta) {
-            $fieldId = $this->classMetadata->getClassName().$field;
+            $fieldId = $this->classMetadata->getClassName() . $field;
             $fieldKey = $field;
 
             if ($meta->getPropertyAnnotationMetadata()->hasCustomKey()) {
@@ -109,12 +111,12 @@ class EntityPersister
         $query = 'MATCH (n) WHERE id(n) = {id} SET n += {props}';
         if (!empty($extraLabels)) {
             foreach ($extraLabels as $label) {
-                $query .= ' SET n:'.$label;
+                $query .= ' SET n:' . $label;
             }
         }
         if (!empty($removeLabels)) {
             foreach ($removeLabels as $label) {
-                $query .= ' REMOVE n:'.$label;
+                $query .= ' REMOVE n:' . $label;
             }
         }
 

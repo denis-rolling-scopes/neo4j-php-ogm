@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -11,49 +13,22 @@
 
 namespace GraphAware\Neo4j\OGM\Metadata;
 
+use ReflectionProperty;
+
 final class GraphEntityPropertyMetadata
 {
-    /**
-     * @var string
-     */
-    private $propertyName;
-
-    /**
-     * @var \ReflectionProperty
-     */
-    private $reflectionProperty;
-
-    /**
-     * @var \GraphAware\Neo4j\OGM\Metadata\PropertyAnnotationMetadata
-     */
-    private $propertyAnnotationMetadata;
-
-    /**
-     * GraphEntityPropertyMetadata constructor.
-     *
-     * @param string                                                    $propertyName
-     * @param \ReflectionProperty                                       $reflectionProperty
-     * @param \GraphAware\Neo4j\OGM\Metadata\PropertyAnnotationMetadata $propertyAnnotationMetadata
-     */
-    public function __construct($propertyName, \ReflectionProperty $reflectionProperty, PropertyAnnotationMetadata $propertyAnnotationMetadata)
-    {
-        $this->propertyName = $propertyName;
-        $this->reflectionProperty = $reflectionProperty;
-        $this->propertyAnnotationMetadata = $propertyAnnotationMetadata;
+    public function __construct(
+        private string $propertyName,
+        private PropertyAnnotationMetadata $propertyAnnotationMetadata
+    ) {
     }
 
-    /**
-     * @return string
-     */
-    public function getPropertyName()
+    public function getPropertyName(): string
     {
         return $this->propertyName;
     }
 
-    /**
-     * @return \GraphAware\Neo4j\OGM\Metadata\PropertyAnnotationMetadata
-     */
-    public function getPropertyAnnotationMetadata()
+    public function getPropertyAnnotationMetadata(): PropertyAnnotationMetadata
     {
         return $this->propertyAnnotationMetadata;
     }

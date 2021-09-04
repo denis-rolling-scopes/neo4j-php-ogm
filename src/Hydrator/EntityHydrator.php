@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -32,11 +34,11 @@ class EntityHydrator
 
     private const BOTH = 'BOTH';
 
-    private NodeEntityMetadata|RelationshipEntityMetadata|GraphEntityMetadata $_classMetadata;
+    private NodeEntityMetadata $classMetadata;
 
     public function __construct($className, private EntityManager $_em)
     {
-        $this->_classMetadata = $this->_em->getClassMetadataFor($className);
+        $this->classMetadata = $this->_em->getClassMetadataFor($className);
     }
 
     public function hydrateAll(CypherList $dbResult): array
@@ -56,7 +58,7 @@ class EntityHydrator
             return;
         }
 
-        $relationshipMetadata = $this->_classMetadata->getRelationship($alias);
+        $relationshipMetadata = $this->classMetadata->getRelationship($alias);
         $targetHydrator = $this->_em->getEntityHydrator($relationshipMetadata->getTargetEntity());
         $targetMeta = $this->_em->getClassMetadataFor($relationshipMetadata->getTargetEntity());
         $hydrated = $targetHydrator->hydrateAll($dbResult);
@@ -73,12 +75,17 @@ class EntityHydrator
                 $targetRel->setValue($o, $sourceEntity);
             }
         }
-        $this->_em->getUnitOfWork()->addManagedRelationshipReference($sourceEntity, $o, $relationshipMetadata->getPropertyName(), $relationshipMetadata);
+        $this->_em->getUnitOfWork()->addManagedRelationshipReference(
+            $sourceEntity,
+            $o,
+            $relationshipMetadata->getPropertyName(),
+            $relationshipMetadata
+        );
     }
 
     public function hydrateSimpleRelationshipCollection($alias, CypherList $dbResult, $sourceEntity)
     {
-        $relationshipMetadata = $this->_classMetadata->getRelationship($alias);
+        $relationshipMetadata = $this->classMetadata->getRelationship($alias);
         $this->initRelationshipCollection($alias, $sourceEntity);
         /** @var Collection $coll */
         $coll = $relationshipMetadata->getValue($sourceEntity);
@@ -96,16 +103,22 @@ class EntityHydrator
                 } else {
                     $mappedRel->setValue($item, $sourceEntity);
                 }
-                $this->_em->getUnitOfWork()->addManagedRelationshipReference($sourceEntity, $item, $relationshipMetadata->getPropertyName(), $relationshipMetadata);
+                $this->_em->getUnitOfWork()->addManagedRelationshipReference(
+                    $sourceEntity,
+                    $item,
+                    $relationshipMetadata->getPropertyName(),
+                    $relationshipMetadata
+                );
             }
         }
     }
 
     public function hydrateRelationshipEntity($alias, CypherList $dbResult, $sourceEntity)
     {
-        $relationshipMetadata = $this->_classMetadata->getRelationship($alias);
+        $relationshipMetadata = $this->classMetadata->getRelationship($alias);
         /** @var RelationshipEntityMetadata $relationshipEntityMetadata */
-        $relationshipEntityMetadata = $this->_em->getClassMetadataFor($relationshipMetadata->getRelationshipEntityClass());
+        $relationshipEntityMetadata =
+            $this->_em->getClassMetadataFor($relationshipMetadata->getRelationshipEntityClass());
         $otherClass = $this->guessOtherClassName($alias);
         $otherMetadata = $this->_em->getClassMetadataFor($otherClass);
         $otherHydrator = $this->_em->getEntityHydrator($otherClass);
@@ -116,18 +129,16 @@ class EntityHydrator
         }
 
         if ($relationshipEntityMetadata->getStartNodeClass() == $relationshipEntityMetadata->getEndNodeClass()) {
-
             // handle relationships between nodes of the same type
             if ($relationshipMetadata->getDirection() === self::OUTGOING) {
                 $startNodeIsSourceEntity = true;
-            } else if ($relationshipMetadata->getDirection() === self::INCOMING) {
+            } elseif ($relationshipMetadata->getDirection() === self::INCOMING) {
                 $startNodeIsSourceEntity = false;
             } else {
                 throw new MappingException('Invalid Relationship Entity annotations. Direction BOTH not supported on'
                     . 'RelationshipEntities where startNode and endNode are of the same class');
             }
-
-        } else if ($relationshipEntityMetadata->getStartNodeClass() === $this->_classMetadata->getClassName()) {
+        } elseif ($relationshipEntityMetadata->getStartNodeClass() === $this->classMetadata->getClassName()) {
             $startNodeIsSourceEntity = true;
         } else {
             $startNodeIsSourceEntity = false;
@@ -163,7 +174,10 @@ class EntityHydrator
 
                 if ($propertyMetadata->hasConverter()) {
                     $converter = Converter::getConverter($propertyMetadata->getConverterType(), $fieldKey);
-                    $value = $converter->toPHPValue($relationship->getProperties()->toArray(), $propertyMetadata->getConverterOptions());
+                    $value = $converter->toPHPValue(
+                        $relationship->getProperties()->toArray(),
+                        $propertyMetadata->getConverterOptions()
+                    );
                 } else {
                     $properties = $relationship->getProperties();
                     $value = $properties->hasKey($fieldKey) ? $properties->get($fieldKey) : null;
@@ -190,9 +204,15 @@ class EntityHydrator
 
             // detect the name of the property on the other node to populate reverse relation
             foreach ($otherMetadata->getRelationships() as $rel) {
-                if ($rel->isRelationshipEntity() && $rel->getRelationshipEntityClass() === $relationshipEntityMetadata->getClassName()) {
+                if (
+                    $rel->isRelationshipEntity()
+                    && $rel->getRelationshipEntityClass() === $relationshipEntityMetadata->getClassName()
+                ) {
                     // if relation direction is not the opposite, do not populate
-                    if (($direction = $rel->getDirection()) !== self::BOTH && $direction === $relationshipMetadata->getDirection()) {
+                    if (
+                        ($direction = $rel->getDirection()) !== self::BOTH
+                        && $direction === $relationshipMetadata->getDirection()
+                    ) {
                         continue;
                     }
                     if (!$rel->isCollection()) {
@@ -236,7 +256,7 @@ class EntityHydrator
 
     public function hydrateNode(Node $node, $class = null)
     {
-        $cm = null === $class ? $this->_classMetadata->getClassName() : $class;
+        $cm = null === $class ? $this->classMetadata->getClassName() : $class;
         $id = $node->id();
 
         // Check the entity is not managed yet by the uow
@@ -256,12 +276,11 @@ class EntityHydrator
     {
         $this->hydrateProperties($entity, $node);
         $this->hydrateLabels($entity, $node);
-
     }
 
     protected function hydrateProperties($object, Node $node)
     {
-        foreach ($this->_classMetadata->getPropertiesMetadata() as $key => $metadata) {
+        foreach ($this->classMetadata->getPropertiesMetadata() as $key => $metadata) {
             $fieldKey = $key;
 
             if ($metadata->getPropertyAnnotationMetadata()->hasCustomKey()) {
@@ -284,7 +303,7 @@ class EntityHydrator
 
     protected function hydrateLabels($object, Node $node)
     {
-        foreach ($this->_classMetadata->getLabeledProperties() as $labeledProperty) {
+        foreach ($this->classMetadata->getLabeledProperties() as $labeledProperty) {
             if (in_array($labeledProperty->getLabelName(), $node->labels()->toArray())) {
                 $labeledProperty->setLabel($object, true);
             } else {
@@ -295,20 +314,21 @@ class EntityHydrator
 
     protected function getAliases(): array
     {
-        return [$this->_classMetadata->getEntityAlias() => $this->_classMetadata->getClassName()];
+        return [$this->classMetadata->getEntityAlias() => $this->classMetadata->getClassName()];
     }
 
     private function guessOtherClassName($alias): string
     {
-        $relationshipMetadata = $this->_classMetadata->getRelationship($alias);
+        $relationshipMetadata = $this->classMetadata->getRelationship($alias);
         /** @var RelationshipEntityMetadata $relationshipEntityMetadata */
-        $relationshipEntityMetadata = $this->_em->getClassMetadataFor($relationshipMetadata->getRelationshipEntityClass());
+        $relationshipEntityMetadata =
+            $this->_em->getClassMetadataFor($relationshipMetadata->getRelationshipEntityClass());
         /* @todo will not work for Direction.BOTH */
-        return $relationshipEntityMetadata->getOtherClassNameForOwningClass($this->_classMetadata->getClassName());
+        return $relationshipEntityMetadata->getOtherClassNameForOwningClass($this->classMetadata->getClassName());
     }
 
     private function initRelationshipCollection($alias, $sourceEntity)
     {
-        $this->_classMetadata->getRelationship($alias)->initializeCollection($sourceEntity);
+        $this->classMetadata->getRelationship($alias)->initializeCollection($sourceEntity);
     }
 }

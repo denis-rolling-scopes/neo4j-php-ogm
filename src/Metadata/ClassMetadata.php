@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -18,17 +20,9 @@ use GraphAware\Neo4j\OGM\Exception\MappingException;
 
 final class ClassMetadata
 {
-    /**
-     * @var \GraphAware\Neo4j\OGM\Annotations\Entity|\GraphAware\Neo4j\OGM\Annotations\Node|\GraphAware\Neo4j\OGM\Annotations\RelationshipEntity
-     */
-    protected $entityAnnotation;
 
-    /**
-     * @param \GraphAware\Neo4j\OGM\Annotations\Entity $entityAnnotation
-     */
-    public function __construct(Entity $entityAnnotation)
+    public function __construct(protected Entity $entityAnnotation)
     {
-        $this->entityAnnotation = $entityAnnotation;
     }
 
     /**
