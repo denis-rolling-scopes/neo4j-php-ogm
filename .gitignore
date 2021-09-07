@@ -6,4 +6,4 @@ phpunit.xml
 vendor/
 *.idea
 .phpunit.result.cache
-xdebug.log
+logs/

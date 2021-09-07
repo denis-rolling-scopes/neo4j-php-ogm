@@ -11,12 +11,12 @@
 
 namespace GraphAware\Neo4j\OGM\Metadata;
 
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use Doctrine\Persistence\Mapping\ClassMetadata;
 
 abstract class GraphEntityMetadata implements ClassMetadata
 {
     /**
-     * @var \GraphAware\Neo4j\OGM\Metadata\EntityIdMetadata
+     * @var EntityIdMetadata
      */
     protected $entityIdMetadata;
 
@@ -38,7 +38,7 @@ abstract class GraphEntityMetadata implements ClassMetadata
     /**
      * GraphEntityMetadata constructor.
      *
-     * @param \GraphAware\Neo4j\OGM\Metadata\EntityIdMetadata $entityIdMetadata
+     * @param EntityIdMetadata $entityIdMetadata
      * @param string                                          $className
      * @param \ReflectionClass                                $reflectionClass
      * @param $entityPropertiesMetadata
