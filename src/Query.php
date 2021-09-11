@@ -127,13 +127,7 @@ class Query
                 } elseif ($mode === self::HYDRATE_RAW) {
                     $row[$key] = $record->get($key);
                 } elseif ($mode === self::HYDRATE_SINGLE_MAP) {
-                    foreach ($record->get($key)as $key => $value) {
-                        if ($value instanceof CypherMap || $value instanceof CypherList) {
-                            $row[$key] = $this->hydrateMap($value->toArray());;
-                        } else {
-                            $row[$key] = $value;
-                        }
-                    }
+                    $row[$key] = $this->hydrateSingleMap($record->get($key));
                 }
             }
 
@@ -141,6 +135,20 @@ class Query
         }
 
         return $queryResult;
+    }
+
+    private function hydrateSingleMap(array $map): array
+    {
+        $row = [];
+        foreach ($map as $key => $value) {
+            if ($value instanceof CypherMap || $value instanceof CypherList) {
+                $row[$key] = $this->hydrateMap($value->toArray());
+            } else {
+                $row[$key] = $value;
+            }
+        }
+
+        return $row;
     }
 
     /**
