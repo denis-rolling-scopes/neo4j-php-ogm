@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace GraphAware\Neo4j\OGM\Metadata;
 
 use DateTime;
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use Doctrine\Persistence\Mapping\ClassMetadata;
 use ReflectionClass;
 
 abstract class GraphEntityMetadata implements ClassMetadata
