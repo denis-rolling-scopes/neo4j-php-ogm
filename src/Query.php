@@ -16,6 +16,7 @@ namespace GraphAware\Neo4j\OGM;
 use GraphAware\Neo4j\OGM\Exception\Result\NonUniqueResultException;
 use GraphAware\Neo4j\OGM\Exception\Result\NoResultException;
 use Laudis\Neo4j\Types\CypherList;
+use Laudis\Neo4j\Types\CypherMap;
 
 class Query
 {
@@ -28,6 +29,8 @@ class Query
     public const HYDRATE_MAP = "HYDRATE_MAP";
 
     public const HYDRATE_MAP_COLLECTION = "HYDRATE_MAP_COLLECTION";
+
+    public const HYDRATE_SINGLE_MAP = "HYDRATE_SINGLE_MAP";
 
     protected string $cql;
 
@@ -94,6 +97,7 @@ class Query
 
     private function handleResult(CypherList $result): array
     {
+        // TODO need investigation to check if each mode returns arrays of one schema, of mot it should be refactored
         $queryResult = [];
 
         foreach ($result->toArray() as $record) {
@@ -122,6 +126,14 @@ class Query
                     $row[$key] = $this->hydrateMap($record->get($key)->toArray());
                 } elseif ($mode === self::HYDRATE_RAW) {
                     $row[$key] = $record->get($key);
+                } elseif ($mode === self::HYDRATE_SINGLE_MAP) {
+                    foreach ($record->get($key)as $key => $value) {
+                        if ($value instanceof CypherMap || $value instanceof CypherList) {
+                            $row[$key] = $this->hydrateMap($value->toArray());;
+                        } else {
+                            $row[$key] = $value;
+                        }
+                    }
                 }
             }
 
