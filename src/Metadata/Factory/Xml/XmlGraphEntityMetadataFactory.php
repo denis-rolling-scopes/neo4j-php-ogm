@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace GraphAware\Neo4j\OGM\Metadata\Factory\Xml;
 
-use Doctrine\Common\Persistence\Mapping\Driver\FileLocator;
+use Doctrine\Persistence\Mapping\Driver\FileLocator;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Metadata\Factory\GraphEntityMetadataFactoryInterface;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;

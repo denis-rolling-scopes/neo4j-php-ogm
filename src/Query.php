@@ -151,6 +151,7 @@ class Query
      * addEntityMapping('cols', null, Query::HYDRATE_MAP_COLLECTION);
      *
      * @param CypherList $map
+     *
      * @return array
      */
     private function hydrateMapCollection(CypherList $map): array

@@ -245,9 +245,6 @@ class EntityManager implements EntityManagerInterface
         return $this->repositories[$class];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function clear($objectName = null)
     {
         $this->uow = null;

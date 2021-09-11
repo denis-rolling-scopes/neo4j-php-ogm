@@ -36,9 +36,9 @@ class EntityHydrator
 
     private NodeEntityMetadata $classMetadata;
 
-    public function __construct($className, private EntityManager $_em)
+    public function __construct($className, private EntityManager $entityManager)
     {
-        $this->classMetadata = $this->_em->getClassMetadataFor($className);
+        $this->classMetadata = $this->entityManager->getClassMetadataFor($className);
     }
 
     public function hydrateAll(CypherList $dbResult): array
@@ -59,8 +59,8 @@ class EntityHydrator
         }
 
         $relationshipMetadata = $this->classMetadata->getRelationship($alias);
-        $targetHydrator = $this->_em->getEntityHydrator($relationshipMetadata->getTargetEntity());
-        $targetMeta = $this->_em->getClassMetadataFor($relationshipMetadata->getTargetEntity());
+        $targetHydrator = $this->entityManager->getEntityHydrator($relationshipMetadata->getTargetEntity());
+        $targetMeta = $this->entityManager->getClassMetadataFor($relationshipMetadata->getTargetEntity());
         $hydrated = $targetHydrator->hydrateAll($dbResult);
 
         $o = $hydrated[0];
@@ -75,7 +75,7 @@ class EntityHydrator
                 $targetRel->setValue($o, $sourceEntity);
             }
         }
-        $this->_em->getUnitOfWork()->addManagedRelationshipReference(
+        $this->entityManager->getUnitOfWork()->addManagedRelationshipReference(
             $sourceEntity,
             $o,
             $relationshipMetadata->getPropertyName(),
@@ -89,8 +89,8 @@ class EntityHydrator
         $this->initRelationshipCollection($alias, $sourceEntity);
         /** @var Collection $coll */
         $coll = $relationshipMetadata->getValue($sourceEntity);
-        $targetHydrator = $this->_em->getEntityHydrator($relationshipMetadata->getTargetEntity());
-        $targetMeta = $this->_em->getClassMetadataFor($relationshipMetadata->getTargetEntity());
+        $targetHydrator = $this->entityManager->getEntityHydrator($relationshipMetadata->getTargetEntity());
+        $targetMeta = $this->entityManager->getClassMetadataFor($relationshipMetadata->getTargetEntity());
         foreach ($dbResult->toArray() as $record) {
             $node = $record->get($targetMeta->getEntityAlias());
             $item = $targetHydrator->hydrateNode($node, $relationshipMetadata->getTargetEntity());
@@ -103,7 +103,7 @@ class EntityHydrator
                 } else {
                     $mappedRel->setValue($item, $sourceEntity);
                 }
-                $this->_em->getUnitOfWork()->addManagedRelationshipReference(
+                $this->entityManager->getUnitOfWork()->addManagedRelationshipReference(
                     $sourceEntity,
                     $item,
                     $relationshipMetadata->getPropertyName(),
@@ -118,10 +118,10 @@ class EntityHydrator
         $relationshipMetadata = $this->classMetadata->getRelationship($alias);
         /** @var RelationshipEntityMetadata $relationshipEntityMetadata */
         $relationshipEntityMetadata =
-            $this->_em->getClassMetadataFor($relationshipMetadata->getRelationshipEntityClass());
+            $this->entityManager->getClassMetadataFor($relationshipMetadata->getRelationshipEntityClass());
         $otherClass = $this->guessOtherClassName($alias);
-        $otherMetadata = $this->_em->getClassMetadataFor($otherClass);
-        $otherHydrator = $this->_em->getEntityHydrator($otherClass);
+        $otherMetadata = $this->entityManager->getClassMetadataFor($otherClass);
+        $otherHydrator = $this->entityManager->getEntityHydrator($otherClass);
 
         // initialize collection on source entity to avoid it being null
         if ($relationshipMetadata->isCollection()) {
@@ -157,7 +157,7 @@ class EntityHydrator
             $targetEntity = $otherHydrator->hydrateNode($targetNode);
 
             // create the relationship entity
-            $entity = $this->_em->getUnitOfWork()->createRelationshipEntity(
+            $entity = $this->entityManager->getUnitOfWork()->createRelationshipEntity(
                 $relationship,
                 $relationshipEntityMetadata->getClassName(),
                 $sourceEntity,
@@ -238,16 +238,16 @@ class EntityHydrator
                 $id = $node->id();
 
                 // Check the entity is not managed yet by the uow
-                if (null !== $entity = $this->_em->getUnitOfWork()->getEntityById($id)) {
+                if (null !== $entity = $this->entityManager->getUnitOfWork()->getEntityById($id)) {
                     $result[] = $entity;
                     continue;
                 }
 
                 // create the entity
-                $entity = $this->_em->getUnitOfWork()->createEntity($node, $entityName, $id);
+                $entity = $this->entityManager->getUnitOfWork()->createEntity($node, $entityName, $id);
                 $this->hydrateProperties($entity, $node);
                 $this->hydrateLabels($entity, $node);
-                $this->_em->getUnitOfWork()->addManaged($entity);
+                $this->entityManager->getUnitOfWork()->addManaged($entity);
 
                 $result[] = $entity;
             }
@@ -260,12 +260,12 @@ class EntityHydrator
         $id = $node->id();
 
         // Check the entity is not managed yet by the uow
-        if (null !== $entity = $this->_em->getUnitOfWork()->getEntityById($id)) {
+        if (null !== $entity = $this->entityManager->getUnitOfWork()->getEntityById($id)) {
             return $entity;
         }
 
         // create the entity
-        $entity = $this->_em->getUnitOfWork()->createEntity($node, $cm, $id);
+        $entity = $this->entityManager->getUnitOfWork()->createEntity($node, $cm, $id);
         $this->hydrateProperties($entity, $node);
         $this->hydrateLabels($entity, $node);
 
@@ -322,7 +322,7 @@ class EntityHydrator
         $relationshipMetadata = $this->classMetadata->getRelationship($alias);
         /** @var RelationshipEntityMetadata $relationshipEntityMetadata */
         $relationshipEntityMetadata =
-            $this->_em->getClassMetadataFor($relationshipMetadata->getRelationshipEntityClass());
+            $this->entityManager->getClassMetadataFor($relationshipMetadata->getRelationshipEntityClass());
         /* @todo will not work for Direction.BOTH */
         return $relationshipEntityMetadata->getOtherClassNameForOwningClass($this->classMetadata->getClassName());
     }
