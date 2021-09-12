@@ -56,7 +56,7 @@ class DateTimeConverter extends Converter
         throw new ConverterException(sprintf('Unable to convert value in converter "%s"', $this->getName()));
     }
 
-    public function toPHPValue(array $values, array $options): DateTime|bool|null
+    public function toPHPValue(array $values, array $options): DateTime|false|null
     {
         if (!isset($values[$this->propertyName])) {
             return null;

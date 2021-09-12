@@ -199,9 +199,9 @@ class Query
      *
      * @param string $key
      * @param mixed $value
-     * @return array|null|int|object
+     * @return array|null|int|object|string
      */
-    private function hydrateMapValue(string $key, mixed $value): array|null|int|object
+    private function hydrateMapValue(string $key, mixed $value): array|null|int|object|string
     {
         $row = [];
         $mode = array_key_exists($key, $this->mappings) ? $this->mappings[$key][1] : self::HYDRATE_RAW;
@@ -220,7 +220,9 @@ class Query
         } elseif ($mode === self::HYDRATE_MAP) {
             $row = $this->hydrateMap($value->toArray());
         } elseif ($mode === self::HYDRATE_RAW) {
-            $row = $value instanceof CypherList ? $value->toArray() : $value;
+            $row = $value;
+        } elseif ($mode === self::HYDRATE_SINGLE_MAP) {
+            $row = $this->hydrateSingleMap($value->toArray());
         }
         return $row;
     }

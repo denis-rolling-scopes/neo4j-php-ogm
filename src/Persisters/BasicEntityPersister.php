@@ -243,7 +243,7 @@ class BasicEntityPersister
         return Statement::create($cypher, ['id' => $sourceEntityId]);
     }
 
-    public function prepareDateForStatement($alias, $sourceEntity)
+    private function prepareDateForStatement($alias, $sourceEntity): array
     {
         $relationshipMeta = $this->classMetadata->getRelationship($alias);
         $relAlias = $relationshipMeta->getAlias();
