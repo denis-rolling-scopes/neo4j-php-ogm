@@ -137,7 +137,7 @@ class Query
         return $queryResult;
     }
 
-    private function hydrateSingleMap(array $map): array
+    private function hydrateSingleMap(CypherMap|CypherList $map): array
     {
         $row = [];
         foreach ($map as $key => $value) {

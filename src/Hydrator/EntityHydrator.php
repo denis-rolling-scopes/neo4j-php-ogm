@@ -297,7 +297,7 @@ class EntityHydrator
                     $value = null;
                 }
             }
-            $metadata->setValue($object, $value);
+            $metadata->setValue($object, $value instanceof CypherList ? $value->toArray() : $value);
         }
     }
 
