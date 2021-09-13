@@ -197,11 +197,11 @@ class Query
      * Node collection, map, map collection or to RAW value.
      * Mapping relies on $key
      *
-     * @param string $key
+     * @param int|string $key
      * @param mixed $value
      * @return array|null|int|object|string
      */
-    private function hydrateMapValue(string $key, mixed $value): array|null|int|object|string
+    private function hydrateMapValue(int|string $key, mixed $value): array|null|int|object|string
     {
         $row = [];
         $mode = array_key_exists($key, $this->mappings) ? $this->mappings[$key][1] : self::HYDRATE_RAW;
