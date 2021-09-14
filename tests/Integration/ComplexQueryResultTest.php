@@ -26,7 +26,7 @@ class ComplexQueryResultTest extends IntegrationTestCase
         $q->addEntityMapping('n', Person::class);
         $q->addEntityMapping('actInfo', null, Query::HYDRATE_MAP);
         $q->addEntityMapping('movie', Movie::class);
-        $q->addEntityMapping('roles', null, Query::HYDRATE_SINGLE_MAP);
+        $q->addEntityMapping('roles', null, Query::HYDRATE_MAP);
 
         $result = $q->getResult();
         $this->assertCount(2, $result);
