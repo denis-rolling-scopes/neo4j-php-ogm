@@ -131,11 +131,7 @@ abstract class GraphEntityMetadata implements ClassMetadata
         $values = [];
         foreach ($this->entityPropertiesMetadata as $entityPropertyMetadata) {
             $value = $entityPropertyMetadata->getValue($object);
-            if (is_object($value)) {
-                $value = match ($value::class) {
-                    DateTime::class => $value->getTimestamp(),
-                };
-            }
+            $value = ($value instanceof DateTime) ? $value->getTimestamp() : $value;
             $values[$entityPropertyMetadata->getPropertyName()] = $value;
         }
 
