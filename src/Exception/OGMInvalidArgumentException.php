@@ -29,6 +29,6 @@ class OGMInvalidArgumentException extends \InvalidArgumentException
 
     private static function objectToString(object $obj): string
     {
-        return method_exists($obj, '__toString') ? (string) $obj : get_class($obj) . '@' . spl_object_hash($obj);
+        return method_exists($obj, '__toString') ? (string) $obj : $obj::class . '@' . spl_object_hash($obj);
     }
 }

@@ -68,7 +68,13 @@ class Query
 
     public function getResult(): array
     {
-        return $this->execute();
+        $result = $this->execute();
+
+        if (empty($result)) {
+            throw new NoResultException('Entities have not been found');
+        }
+
+        return $result;
     }
 
     public function execute(): array
@@ -239,17 +245,12 @@ class Query
             throw new NonUniqueResultException(sprintf('Expected 1 or null result, got %d', count($result)));
         }
 
-
         return $result;
     }
 
     public function getOneResult()
     {
-        $result = $this->execute();
-
-        if (empty($result)) {
-            throw new NoResultException('Entities have not been found');
-        }
+        $result = $this->getResult();
 
         if (count($result) > 1) {
             throw new NonUniqueResultException(sprintf('Expected 1 or null result, got %d', count($result)));

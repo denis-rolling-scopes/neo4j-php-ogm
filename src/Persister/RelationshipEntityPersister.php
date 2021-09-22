@@ -30,12 +30,12 @@ class RelationshipEntityPersister
 
     public function getCreateQuery($entity, $pov): Statement
     {
-        $class = ClassUtils::getFullClassName(get_class($entity), $pov);
+        $class = ClassUtils::getFullClassName($entity::class, $pov);
         $relationshipEntityMetadata = $this->manager->getRelationshipEntityMetadata($class);
         $startNode = $relationshipEntityMetadata->getStartNodeValue($entity);
-        $startNodeId = $this->manager->getClassMetadataFor(get_class($startNode))->getIdValue($startNode);
+        $startNodeId = $this->manager->getClassMetadataFor($startNode::class)->getIdValue($startNode);
         $endNode = $relationshipEntityMetadata->getEndNodeValue($entity);
-        $endNodeId = $this->manager->getClassMetadataFor(get_class($endNode))->getIdValue($endNode);
+        $endNodeId = $this->manager->getClassMetadataFor($endNode::class)->getIdValue($endNode);
 
         $relType = $this->classNameMetadata->getType();
         $parameters = [
