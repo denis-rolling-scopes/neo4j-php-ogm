@@ -25,9 +25,9 @@
         "doctrine/annotations": "^1.13",
         "doctrine/collections": "^1.6",
         "doctrine/common": "^3.1",
-        "stefanak-michal/bolt": "^2.5",
-        "laudis/neo4j-php-client": "^2.1",
-        "doctrine/persistence": "^2.2"
+        "doctrine/persistence": "^2.2",
+        "laudis/neo4j-php-client": "^2.4",
+        "stefanak-michal/bolt": "^3.1"
     },
     "autoload": {
         "psr-4": {
