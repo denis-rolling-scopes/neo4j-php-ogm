@@ -8,14 +8,14 @@
 [![Total Downloads](https://poser.pugx.org/autoprotect-group/neo4j-php-ogm/downloads)](https://packagist.org/packages/autoprotect-group/neo4j-php-ogm)
 [![License](https://poser.pugx.org/autoprotect-group/neo4j-php-ogm/license)](https://packagist.org/packages/autoprotect-group/neo4j-php-ogm)
 
-**Current Release** : `1.1`
+**Current Release** : `^2.0`
 
 ## Installation
 
 Install with composer
 
 ```cli
-composer require autoprotect-group/neo4j-php-ogm:^1.1
+composer require autoprotect-group/neo4j-php-ogm
 ```
 
 ## Documentation

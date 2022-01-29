@@ -42,11 +42,16 @@ class Query
     {
     }
 
-    public function setCQL($cql): static
+    public function setCQL(string $cql): static
     {
         $this->cql = $cql;
 
         return $this;
+    }
+
+    public function getCQL(): string
+    {
+        return $this->cql;
     }
 
     public function setParameter(string $key, float|int|bool|array|string|null $value, int $type = null): static
@@ -110,7 +115,7 @@ class Query
 
     public function execute(): array
     {
-        $stmt = $this->cql;
+        $stmt = $this->getCql();
         $parameters = $this->formatParameters();
 
         /** @var CypherList $result */
