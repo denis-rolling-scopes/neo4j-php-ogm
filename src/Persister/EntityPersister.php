@@ -21,6 +21,7 @@ use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 class EntityPersister
 {
     protected string $paramStyle;
+
     public function __construct(
         protected EntityManager $entityManager,
         protected string $className,
@@ -29,7 +30,7 @@ class EntityPersister
         $this->paramStyle = $this->entityManager->isV4() === true ? '$%s' : '{%s}';
     }
 
-    public function getCreateQuery($object)
+    public function getCreateQuery(object $object): Statement
     {
         [$propertyValues, $extraLabels, $removeLabels] = $this->getBaseQueryProperties($object);
 
@@ -53,7 +54,7 @@ class EntityPersister
         return Statement::create($query, ['properties' => $propertyValues]);
     }
 
-    public function getUpdateQuery($object)
+    public function getUpdateQuery(object $object): Statement
     {
         [$propertyValues, $extraLabels, $removeLabels] = $this->getBaseQueryProperties($object);
 
@@ -73,13 +74,7 @@ class EntityPersister
         return Statement::create($query, ['id' => $id, 'props' => $propertyValues]);
     }
 
-    /**
-     * Refreshes a managed entity.
-     *
-     * @param int $id
-     * @param object $entity The entity to refresh
-     */
-    public function refresh(int $id, object $entity)
+    public function refresh(int $id, object $entity): void
     {
         $label = $this->classMetadata->getLabel();
         $query = sprintf("MATCH (n:%s) WHERE id(n) = $this->paramStyle RETURN n", $label, 'id');
@@ -91,7 +86,7 @@ class EntityPersister
         }
     }
 
-    public function getDetachDeleteQuery($object): Statement
+    public function getDetachDeleteQuery(object $object): Statement
     {
         $query = sprintf("MATCH (n) WHERE id(n) = $this->paramStyle DETACH DELETE n", 'id');
         $id = $this->classMetadata->getIdValue($object);
@@ -99,7 +94,7 @@ class EntityPersister
         return Statement::create($query, ['id' => $id]);
     }
 
-    public function getDeleteQuery($object): Statement
+    public function getDeleteQuery(object $object): Statement
     {
         $query = sprintf("MATCH (n) WHERE id(n) = $this->paramStyle DELETE n", 'id');
         $id = $this->classMetadata->getIdValue($object);
@@ -107,7 +102,7 @@ class EntityPersister
         return Statement::create($query, ['id' => $id]);
     }
 
-    private function getBaseQueryProperties($object)
+    private function getBaseQueryProperties(object $object): array
     {
         $propertyValues = [];
         $extraLabels = [];
@@ -122,8 +117,10 @@ class EntityPersister
 
             if ($meta->hasConverter()) {
                 $converter = Converter::getConverter($meta->getConverterType(), $fieldId);
-                $v = $converter->toDatabaseValue($meta->getValue($object), $meta->getConverterOptions());
-                $propertyValues[$fieldKey] = $v;
+                $propertyValues[$fieldKey] = $converter->toDatabaseValue(
+                    $meta->getValue($object),
+                    $meta->getConverterOptions()
+                );
             } else {
                 $propertyValues[$fieldKey] = $meta->getValue($object);
             }
