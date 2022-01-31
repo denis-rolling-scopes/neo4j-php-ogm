@@ -52,13 +52,14 @@ class EntityManager implements EntityManagerInterface
         protected ClientInterface $databaseDriver,
         string $cacheDirectory = null,
         protected ?EventManager $eventManager = null,
-        protected ?GraphEntityMetadataFactoryInterface $metadataFactory = null
+        protected ?GraphEntityMetadataFactoryInterface $metadataFactory = null,
+        protected bool $isV4 = false,
     ) {
         $this->eventManager = $eventManager ?: new EventManager();
         $this->uow = new UnitOfWork($this);
 
         if ($this->metadataFactory === null) {
-            $reader = new FileCacheReader(new AnnotationReader(), $cacheDirectory, $debug = true);
+            $reader = new FileCacheReader(new AnnotationReader(), $cacheDirectory, true);
             $this->metadataFactory = new AnnotationGraphEntityMetadataFactory($reader);
         }
         $this->proxyDirectory = $cacheDirectory;
@@ -299,5 +300,10 @@ class EntityManager implements EntityManagerInterface
     public function registerPropertyConverter(string $name, string $classname): void
     {
         Converter::addConverter($name, $classname);
+    }
+
+    public function isV4(): bool
+    {
+        return $this->isV4;
     }
 }
