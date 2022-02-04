@@ -27,7 +27,7 @@ class EntityPersister
         protected string $className,
         protected NodeEntityMetadata $classMetadata
     ) {
-        $this->paramStyle = $this->entityManager->isV4() === true ? '$%s' : '{%s}';
+        $this->paramStyle = $this->entityManager->isV4() ? '$%s' : '{%s}';
     }
 
     public function getCreateQuery(object $object): Statement

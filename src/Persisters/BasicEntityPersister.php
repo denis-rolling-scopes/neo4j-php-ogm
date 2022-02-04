@@ -121,7 +121,7 @@ class BasicEntityPersister
 
         $filter_cursor = 0;
         $params = [];
-        $paramStyle = $this->entityManager->isV4() === true ? '$%s' : '{%s}';
+        $paramStyle = $this->entityManager->isV4() ? '$%s' : '{%s}';
         foreach ($criteria as $key => $criterion) {
             $key = (string) $key;
             $clause = $filter_cursor === 0 ? 'WHERE' : 'AND';
