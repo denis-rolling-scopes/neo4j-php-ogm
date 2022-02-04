@@ -118,7 +118,7 @@ class Query
     public function execute(): array
     {
         $stmt = $this->getCql();
-        if ($this->entityManager->isV4() === true) {
+        if ($this->entityManager->isV4()) {
             $stmt = $this->queryVersionConverter($stmt);
         }
         $parameters = $this->formatParameters();
