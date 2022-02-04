@@ -36,7 +36,7 @@ class EntityPersister
 
         $query = sprintf('CREATE (n:%s)', $this->classMetadata->getLabel());
         if (!empty($propertyValues)) {
-            $query .= sprintf(" SET n += $this->paramStyle", 'properties');
+            $query .= sprintf(" SET n += {$this->paramStyle}", 'properties');
         }
         if (!empty($extraLabels)) {
             foreach ($extraLabels as $label) {
@@ -59,7 +59,7 @@ class EntityPersister
         [$propertyValues, $extraLabels, $removeLabels] = $this->getBaseQueryProperties($object);
 
         $id = $this->classMetadata->getIdValue($object);
-        $query = sprintf("MATCH (n) WHERE id(n) = $this->paramStyle SET n += $this->paramStyle", 'id', 'props');
+        $query = sprintf("MATCH (n) WHERE id(n) = {$this->paramStyle} SET n += {$this->paramStyle}", 'id', 'props');
         if (!empty($extraLabels)) {
             foreach ($extraLabels as $label) {
                 $query .= ' SET n:' . $label;
@@ -77,7 +77,7 @@ class EntityPersister
     public function refresh(int $id, object $entity): void
     {
         $label = $this->classMetadata->getLabel();
-        $query = sprintf("MATCH (n:%s) WHERE id(n) = $this->paramStyle RETURN n", $label, 'id');
+        $query = sprintf("MATCH (n:%s) WHERE id(n) = {$this->paramStyle} RETURN n", $label, 'id');
         $result = $this->entityManager->getDatabaseDriver()->run($query, ['id' => $id]);
 
         if ($result->count() > 0) {
@@ -88,7 +88,7 @@ class EntityPersister
 
     public function getDetachDeleteQuery(object $object): Statement
     {
-        $query = sprintf("MATCH (n) WHERE id(n) = $this->paramStyle DETACH DELETE n", 'id');
+        $query = sprintf("MATCH (n) WHERE id(n) = {$this->paramStyle} DETACH DELETE n", 'id');
         $id = $this->classMetadata->getIdValue($object);
 
         return Statement::create($query, ['id' => $id]);
@@ -96,7 +96,7 @@ class EntityPersister
 
     public function getDeleteQuery(object $object): Statement
     {
-        $query = sprintf("MATCH (n) WHERE id(n) = $this->paramStyle DELETE n", 'id');
+        $query = sprintf("MATCH (n) WHERE id(n) = {$this->paramStyle} DELETE n", 'id');
         $id = $this->classMetadata->getIdValue($object);
 
         return Statement::create($query, ['id' => $id]);
