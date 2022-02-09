@@ -117,14 +117,10 @@ class Query
 
     public function execute(): array
     {
-        $stmt = $this->getCql();
-        if ($this->entityManager->isV4()) {
-            $stmt = $this->queryVersionConverter($stmt);
-        }
-        $parameters = $this->formatParameters();
+        $statement = $this->entityManager->isV4() ? $this->queryVersionConverter($this->getCql()) : $this->getCql();
 
         /** @var CypherList $result */
-        $result = $this->entityManager->getDatabaseDriver()->run($stmt, $parameters);
+        $result = $this->entityManager->getDatabaseDriver()->run($statement, $this->formatParameters());
         if ($result->count() === 0) {
             return [];
         }
