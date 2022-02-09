@@ -91,7 +91,7 @@ class UnitOfWork
 
     public function __construct(private EntityManager $entityManager)
     {
-        $this->relationshipPersister = new RelationshipPersister();
+        $this->relationshipPersister = new RelationshipPersister($entityManager->isV4());
     }
 
     public function persist($entity)
@@ -607,7 +607,7 @@ class UnitOfWork
         return null;
     }
 
-    public function createEntity(Node $node, $className, $id)
+    public function createEntity(Node $node, string $className, string|int $id)
     {
         /** todo receive a data of object instead of node object */
         $classMetadata = $this->entityManager->getClassMetadataFor($className);

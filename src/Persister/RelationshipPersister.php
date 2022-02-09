@@ -20,6 +20,13 @@ use RuntimeException;
 
 class RelationshipPersister
 {
+    private string $paramStyle;
+
+    public function __construct(bool $isV4 = false)
+    {
+        $this->paramStyle = $isV4 ? '$%s' : '{%s}';
+    }
+
     public function getRelationshipQuery($entityIdA, RelationshipMetadata $relationship, $entityIdB): Statement
     {
         if ('' === trim($relationship->getType())) {
@@ -30,16 +37,18 @@ class RelationshipPersister
             'OUTGOING' => '-[r:%s]->',
             'INCOMING' => '<-[r:%s]-',
             'BOTH' => '-[r:%s]-',
-            default => throw new \InvalidArgumentException(
+            default => throw new InvalidArgumentException(
                 sprintf('Direction "%s" is not valid', $relationship->getDirection())
             ),
         };
 
-        $relStringPart = sprintf($relString, $relationship->getType());
-
-        $query = 'MATCH (a), (b) WHERE id(a) = {ida} AND id(b) = {idb}
-        MERGE (a)' . $relStringPart . '(b)
-        RETURN id(r)';
+        $query = sprintf(
+            "MATCH (a), (b) WHERE id(a) = {$this->paramStyle} AND id(b) = {$this->paramStyle}"
+            . ' MERGE (a) %s (b) RETURN id(r)',
+            'ida',
+            'idb',
+            sprintf($relString, $relationship->getType())
+        );
 
         return Statement::create($query, ['ida' => $entityIdA, 'idb' => $entityIdB]);
     }
@@ -55,11 +64,13 @@ class RelationshipPersister
             ),
         };
 
-        $relStringPart = sprintf($relString, $relationship->getType());
-
-        $query = 'MATCH (a), (b) WHERE id(a) = {ida} AND id(b) = {idb}
-        MATCH (a)' . $relStringPart . '(b)
-        DELETE r';
+        $query = sprintf(
+            "MATCH (a), (b) WHERE id(a) = {$this->paramStyle} AND id(b) = {$this->paramStyle}"
+            . ' MATCH (a) %s (b) DELETE r',
+            'ida',
+            'idb',
+            sprintf($relString, $relationship->getType())
+        );
 
         return Statement::create($query, ['ida' => $entityIdA, 'idb' => $entityIdB]);
     }

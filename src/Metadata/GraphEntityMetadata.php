@@ -97,12 +97,12 @@ abstract class GraphEntityMetadata implements ClassMetadata
         return $this->reflectionClass->newInstanceWithoutConstructor();
     }
 
-    public function getIdValue($object): mixed
+    public function getIdValue(object $object): mixed
     {
         return $this->entityIdMetadata->getValue($object);
     }
 
-    public function setId($object, $value)
+    public function setId(object $object, string|int $value)
     {
         $this->entityIdMetadata->setValue($object, $value);
     }

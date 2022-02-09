@@ -20,11 +20,14 @@ use GraphAware\Neo4j\OGM\Util\DirectionUtils;
 
 class BasicEntityPersister
 {
+    private string $paramStyle;
+
     public function __construct(
         private string $className,
         private NodeEntityMetadata $classMetadata,
         private EntityManager $entityManager
     ) {
+        $this->paramStyle = $this->entityManager->isV4() ? '$%s' : '{%s}';
     }
 
     public function load(array $criteria, array $orderBy = null): ?object
@@ -116,21 +119,19 @@ class BasicEntityPersister
         int $offset = null
     ): Statement {
         $identifier = $this->classMetadata->getEntityAlias();
-        $classLabel = $this->classMetadata->getLabel();
-        $cypher = 'MATCH (' . $identifier . ':' . $classLabel . ') ';
+        $cypher = sprintf('MATCH (%s:%s) ', $identifier, $this->classMetadata->getLabel());
 
         $filter_cursor = 0;
         $params = [];
-        $paramStyle = $this->entityManager->isV4() ? '$%s' : '{%s}';
         foreach ($criteria as $key => $criterion) {
             $key = (string) $key;
             $clause = $filter_cursor === 0 ? 'WHERE' : 'AND';
-            $cypher .= sprintf("%s %s.%s = {$paramStyle} ", $clause, $identifier, $key, $key);
+            $cypher .= sprintf("%s %s.%s = {$this->paramStyle} ", $clause, $identifier, $key, $key);
             $params[$key] = $criterion;
             ++$filter_cursor;
         }
 
-        $cypher .= 'RETURN ' . $identifier;
+        $cypher .= sprintf('RETURN %s', $identifier);
 
         if (is_array($orderBy) && count($orderBy) > 0) {
             $cypher .= PHP_EOL;
@@ -178,13 +179,16 @@ class BasicEntityPersister
         $isIncoming = $relationshipMeta->getDirection() === DirectionUtils::INCOMING ? '<' : '';
         $isOutgoing = $relationshipMeta->getDirection() === DirectionUtils::OUTGOING ? '>' : '';
 
-        $target = $isIncoming ? 'startNode' : 'endNode';
-
-        $relPattern = sprintf('%s-[%s:`%s`]-%s', $isIncoming, $relAlias, $relationshipType, $isOutgoing);
-
-        $cypher = 'MATCH (n) WHERE id(n) = {id} ';
-        $cypher .= 'MATCH (n)' . $relPattern . '(' . $targetAlias . ') ';
-        $cypher .= 'RETURN {target: ' . $target . '(' . $relAlias . '), re: ' . $relAlias . '} AS ' . $relAlias;
+        $cypher = sprintf(
+            "MATCH (n) WHERE id(n) = {$this->paramStyle} MATCH (n)%s(%s) RETURN {target: %s(%s), re: %s} AS %s",
+            'id',
+            sprintf('%s-[%s:`%s`]-%s', $isIncoming, $relAlias, $relationshipType, $isOutgoing),
+            $targetAlias,
+            $isIncoming ? 'startNode' : 'endNode',
+            $relAlias,
+            $relAlias,
+            $relAlias
+        );
 
         $params = ['id' => $sourceEntityId];
 
@@ -210,9 +214,15 @@ class BasicEntityPersister
     private function getMatchOneByIdCypher($id): Statement
     {
         $identifier = $this->classMetadata->getEntityAlias();
-        $label = $this->classMetadata->getLabel();
-        $cypher =
-            'MATCH (' . $identifier . ':`' . $label . '`) WHERE id(' . $identifier . ') = {id} RETURN ' . $identifier;
+        $cypher = sprintf(
+            "MATCH (%s:`%s`)  WHERE id(%s) = {$this->paramStyle} RETURN %s",
+            $identifier,
+            $this->classMetadata->getLabel(),
+            $identifier,
+            'id',
+            $identifier
+        );
+
         $params = ['id' => (int) $id];
 
         return Statement::create($cypher, $params);
@@ -236,7 +246,7 @@ class BasicEntityPersister
 
         $relPattern = sprintf('%s-[:`%s`]-%s', $isIncoming, $relationshipType, $isOutgoing);
 
-        $cypher  = 'MATCH (n) WHERE id(n) = {id} ';
+        $cypher  = sprintf("MATCH (n) WHERE id(n) = {$this->paramStyle} ", 'id');
         $cypher .= 'RETURN size((n)' . $relPattern . '(' . $targetClassLabel . ')) ';
         $cypher .= 'AS ' . $alias;
 
@@ -246,21 +256,28 @@ class BasicEntityPersister
     private function prepareDateForStatement($alias, $sourceEntity): array
     {
         $relationshipMeta = $this->classMetadata->getRelationship($alias);
-        $relAlias = $relationshipMeta->getAlias();
         $targetMetadata = $this->entityManager->getClassMetadataFor($relationshipMeta->getTargetEntity());
-        $targetClassLabel = $targetMetadata->getLabel();
         $targetAlias = $targetMetadata->getEntityAlias();
-        $sourceEntityId = $this->classMetadata->getIdValue($sourceEntity);
-        $relationshipType = $relationshipMeta->getType();
 
-        $isIncoming = $relationshipMeta->getDirection() === DirectionUtils::INCOMING ? '<' : '';
-        $isOutgoing = $relationshipMeta->getDirection() === DirectionUtils::OUTGOING ? '>' : '';
+        $cypher = sprintf(
+            "MATCH (n) WHERE id(n) = {$this->paramStyle} MATCH (n)%s(%s:%s) ",
+            'id',
+            sprintf(
+                '%s-[%s:`%s`]-%s',
+                $relationshipMeta->getDirection() === DirectionUtils::INCOMING ? '<' : '',
+                $relationshipMeta->getAlias(),
+                $relationshipMeta->getType(),
+                $relationshipMeta->getDirection() === DirectionUtils::OUTGOING ? '>' : ''
+            ),
+            $targetAlias,
+            $targetMetadata->getLabel()
+        );
 
-        $relPattern = sprintf('%s-[%s:`%s`]-%s', $isIncoming, $relAlias, $relationshipType, $isOutgoing);
-
-        $cypher = 'MATCH (n) WHERE id(n) = {id} ';
-        $cypher .= 'MATCH (n)' . $relPattern . '(' . $targetAlias . ($targetClassLabel != null ? ':' . $targetClassLabel : '') . ') ';
-
-        return [$cypher, $targetAlias, $relationshipMeta, $sourceEntityId];
+        return [
+            $cypher,
+            $targetAlias,
+            $relationshipMeta,
+            $this->classMetadata->getIdValue($sourceEntity)
+        ];
     }
 }

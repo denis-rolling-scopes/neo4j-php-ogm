@@ -23,14 +23,14 @@ final class EntityIdMetadata
     ) {
     }
 
-    public function getValue($object): mixed
+    public function getValue(object $object): mixed
     {
         $this->reflectionProperty->setAccessible(true);
 
         return $this->reflectionProperty->getValue($object);
     }
 
-    public function setValue($object, $value)
+    public function setValue(object $object, string|int $value): void
     {
         $this->reflectionProperty->setAccessible(true);
         $this->reflectionProperty->setValue($object, $value);

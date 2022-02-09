@@ -21,11 +21,14 @@ use GraphAware\Neo4j\OGM\Util\ClassUtils;
 
 class RelationshipEntityPersister
 {
+    private string $paramStyle;
+
     public function __construct(
         protected EntityManager $manager,
         protected string $className,
         protected RelationshipEntityMetadata $classNameMetadata
     ) {
+        $this->paramStyle = $this->manager->isV4() ? '$%s' : '{%s}';
     }
 
     public function getCreateQuery($entity, $pov): Statement
@@ -57,12 +60,16 @@ class RelationshipEntityPersister
 
         $parameters = $this->getParameters($entity, $parameters);
 
-        $query = 'MATCH (a), (b) WHERE id(a) = {a} AND id(b) = {b}' . PHP_EOL;
+        $query = sprintf(
+            "MATCH (a), (b) WHERE id(a) = {$this->paramStyle} AND id(b) = {$this->paramStyle}",
+            'a',
+            'b'
+            ) . PHP_EOL;
         $query .= sprintf('CREATE (a)-[r:%s]->(b)', $relType) . PHP_EOL;
         if (!empty($parameters['fields'])) {
-            $query .= 'SET r += {fields} ';
+            $query .= sprintf("SET r += {$this->paramStyle} ", 'fields');
         }
-        $query .= 'RETURN id(r) AS id, {oid} AS oid';
+        $query .= sprintf("RETURN id(r) AS id, {$this->paramStyle} AS oid", 'oid');
         $parameters['oid'] = spl_object_hash($entity);
 
         return Statement::create($query, $parameters);
@@ -72,7 +79,7 @@ class RelationshipEntityPersister
     {
         $id = $this->classNameMetadata->getIdValue($entity);
 
-        $query = sprintf('MATCH ()-[rel]->() WHERE id(rel) = %d SET rel += {fields}', $id);
+        $query = sprintf("MATCH ()-[rel]->() WHERE id(rel) = %d SET rel += {$this->paramStyle}", $id, 'fields');
 
         $parameters = [
             'fields' => [],
@@ -83,16 +90,19 @@ class RelationshipEntityPersister
         return Statement::create($query, $parameters);
     }
 
-    public function getDeleteQuery($entity): Statement
+    public function getDeleteQuery(object $entity): Statement
     {
-        $id = $this->classNameMetadata->getIdValue($entity);
-        $query = 'START rel=rel(' . $id . ') DELETE rel RETURN {oid} AS oid';
+        $query = sprintf(
+            "START rel=rel(%s) DELETE rel RETURN {$this->paramStyle} AS oid",
+            $this->classNameMetadata->getIdValue($entity),
+            'oid'
+        );
         $params = ['oid' => spl_object_hash($entity)];
 
         return Statement::create($query, $params);
     }
 
-    public function getParameters($entity, array $parameters): array
+    public function getParameters(object $entity, array $parameters): array
     {
         foreach ($this->classNameMetadata->getPropertiesMetadata() as $field => $meta) {
             $fieldId = $this->classNameMetadata->getClassName() . $field;
