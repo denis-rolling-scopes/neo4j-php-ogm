@@ -20,8 +20,6 @@ use Laudis\Neo4j\Types\CypherMap;
 
 class Query
 {
-    private const PARAM_V3_REG_EXP = '/{[a-zA-Z0-9]+}/';
-
     public const HYDRATE_COLLECTION = "HYDRATE_COLLECTION";
 
     public const HYDRATE_SINGLE = "HYDRATE_SINGLE";
@@ -117,7 +115,9 @@ class Query
 
     public function execute(): array
     {
-        $statement = $this->entityManager->isV4() ? $this->queryVersionConverter($this->getCql()) : $this->getCql();
+        $statement = $this->entityManager->isV4()
+            ? preg_replace('/{([a-zA-Z0-9]+)}/', '$$1', $this->getCql())
+            : $this->getCql();
 
         /** @var CypherList $result */
         $result = $this->entityManager->getDatabaseDriver()->run($statement, $this->formatParameters());
@@ -268,20 +268,5 @@ class Query
             $row = $this->hydrateSingleMap($value->toArray());
         }
         return $row;
-    }
-
-    private function queryVersionConverter(string $query): string
-    {
-        preg_match_all(self::PARAM_V3_REG_EXP, $query, $matches);
-
-        foreach ($matches[0] as $match) {
-            $query = str_replace(
-                $match,
-                '$' . substr(substr_replace($match, '', -1), 1),
-                $query
-            );
-        }
-
-        return $query;
     }
 }
