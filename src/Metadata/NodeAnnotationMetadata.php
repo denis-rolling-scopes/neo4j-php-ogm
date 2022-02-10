@@ -15,8 +15,10 @@ namespace GraphAware\Neo4j\OGM\Metadata;
 
 final class NodeAnnotationMetadata
 {
-    public function __construct(private string $label, private ?string $customRepository)
-    {
+    public function __construct(
+        private string $label,
+        private ?string $customRepository = null
+    ) {
     }
 
     public function getLabel(): string
