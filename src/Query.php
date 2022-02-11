@@ -116,7 +116,7 @@ class Query
     public function execute(): array
     {
         $statement = $this->entityManager->isV4()
-            ? preg_replace('/[\s]{([a-zA-Z0-9]+)}/', ' $$1', $this->getCql())
+            ? preg_replace('/{([a-zA-Z][a-zA-Z0-9]+)}/', '$$1', $this->getCql())
             : $this->getCql();
 
         /** @var CypherList $result */
