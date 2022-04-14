@@ -1,4 +1,4 @@
-FROM composer:2.0 as composerDocker
+FROM composer:2.3.4 as composerDocker
 
 FROM php:8.0.9-cli-buster
 
@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install XDebug
 USER root
-RUN pecl install xdebug-3.0.1 \
+RUN pecl install xdebug-3.1.4 \
   && docker-php-ext-enable xdebug
 
 ADD ./docker/xdebug/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini

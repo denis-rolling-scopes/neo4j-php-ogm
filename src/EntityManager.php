@@ -25,7 +25,7 @@ use GraphAware\Neo4j\OGM\Metadata\Factory\GraphEntityMetadataFactoryInterface;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\QueryResultMapper;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
-use GraphAware\Neo4j\OGM\Persisters\BasicEntityPersister;
+use GraphAware\Neo4j\OGM\Persisters\EntityPersister;
 use GraphAware\Neo4j\OGM\Proxy\ProxyFactory;
 use GraphAware\Neo4j\OGM\Repository\BaseRepository;
 use GraphAware\Neo4j\OGM\Util\ClassUtils;
@@ -162,9 +162,6 @@ class EntityManager implements EntityManagerInterface
         && !$this->uow->isScheduledForDelete($entity);
     }
 
-    /**
-     * @return EventManager
-     */
     public function getEventManager(): EventManager
     {
         return $this->eventManager;
@@ -189,9 +186,6 @@ class EntityManager implements EntityManagerInterface
         return $this->uow;
     }
 
-    /**
-     * @return ClientInterface
-     */
     public function getDatabaseDriver(): ClientInterface
     {
         return $this->databaseDriver;
@@ -257,12 +251,6 @@ class EntityManager implements EntityManagerInterface
         return $this->proxyDirectory;
     }
 
-    public function getAnnotationDriver()
-    {
-        // TODO: Implement getAnnotationDriver() method.
-        trigger_error('The EntityManager::getAnnotationDriver is not yet implemented', E_USER_ERROR);
-    }
-
     public function getProxyFactory(NodeEntityMetadata $entityMetadata): ProxyFactory
     {
         if (!array_key_exists($entityMetadata->getClassName(), $this->proxyFactories)) {
@@ -281,9 +269,9 @@ class EntityManager implements EntityManagerInterface
         return $this->entityHydrators[$className];
     }
 
-    public function getEntityPersister(string $className): BasicEntityPersister
+    public function getEntityPersister(string $className): EntityPersister
     {
-        return new BasicEntityPersister($className, $this->getClassMetadataFor($className), $this);
+        return new EntityPersister($className, $this->getClassMetadataFor($className), $this);
     }
 
     public function createQuery(string $cql = ''): Query

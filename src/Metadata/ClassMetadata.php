@@ -14,54 +14,10 @@ declare(strict_types=1);
 namespace GraphAware\Neo4j\OGM\Metadata;
 
 use GraphAware\Neo4j\OGM\Annotations\Entity;
-use GraphAware\Neo4j\OGM\Annotations\Node;
-use GraphAware\Neo4j\OGM\Annotations\RelationshipEntity;
-use GraphAware\Neo4j\OGM\Exception\MappingException;
 
 final class ClassMetadata
 {
-
     public function __construct(protected Entity $entityAnnotation)
     {
-    }
-
-    /**
-     * @return bool
-     */
-    public function isNodeEntity()
-    {
-        return $this->entityAnnotation instanceof Node;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRelationshipEntity()
-    {
-        return $this->entityAnnotation instanceof RelationshipEntity;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLabel()
-    {
-        if (!$this->isNodeEntity()) {
-            throw new MappingException(sprintf('This class metadata is not for a node entity'));
-        }
-
-        return $this->entityAnnotation->label;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRelationshipType()
-    {
-        if (!$this->isRelationshipEntity()) {
-            throw new MappingException(sprintf('This class metadata is not for a relationship entity'));
-        }
-
-        return $this->entityAnnotation->type;
     }
 }

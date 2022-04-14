@@ -11,25 +11,13 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace GraphAware\Neo4j\OGM\Persister;
+namespace GraphAware\Neo4j\OGM\Persisters;
 
-use Laudis\Neo4j\Databags\Statement;
 use GraphAware\Neo4j\OGM\Converters\Converter;
-use GraphAware\Neo4j\OGM\EntityManager;
-use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
+use Laudis\Neo4j\Databags\Statement;
 
-class EntityPersister
+class EntityPersister extends BasicEntityPersister
 {
-    protected string $paramStyle;
-
-    public function __construct(
-        protected EntityManager $entityManager,
-        protected string $className,
-        protected NodeEntityMetadata $classMetadata
-    ) {
-        $this->paramStyle = $this->entityManager->isV4() ? '$%s' : '{%s}';
-    }
-
     public function getCreateQuery(object $object): Statement
     {
         [$propertyValues, $extraLabels, $removeLabels] = $this->getBaseQueryProperties($object);

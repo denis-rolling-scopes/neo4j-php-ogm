@@ -197,11 +197,11 @@ METHOD;
     {
         if (!$relationship->isCollection()) {
             $initializer = new SingleNodeInitializer($this->em, $relationship, $this->classMetadata);
-        } elseif ($relationship->isCollection()) {
+        } else {
             $initializer = new NodeCollectionInitializer($this->em, $relationship, $this->classMetadata);
         }
 
-        return $initializer ?? null;
+        return $initializer;
     }
 
     private function newProxyInstance($proxyClass)

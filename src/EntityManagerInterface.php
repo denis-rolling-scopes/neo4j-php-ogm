@@ -18,7 +18,7 @@ use Doctrine\Persistence\ObjectManager;
 use GraphAware\Neo4j\OGM\Hydrator\EntityHydrator;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\QueryResultMapper;
-use GraphAware\Neo4j\OGM\Persisters\BasicEntityPersister;
+use GraphAware\Neo4j\OGM\Persisters\EntityPersister;
 use GraphAware\Neo4j\OGM\Proxy\ProxyFactory;
 use GraphAware\Neo4j\OGM\Repository\BaseRepository;
 
@@ -50,11 +50,9 @@ interface EntityManagerInterface extends ObjectManager
 
     public function getEntityHydrator(string $className): EntityHydrator;
 
-    public function getEntityPersister(string $className): BasicEntityPersister;
+    public function getEntityPersister(string $className): EntityPersister;
 
     public function createQuery(string $cql = ''): Query;
 
     public function registerPropertyConverter(string $name, string $classname): void;
-
-    public function getAnnotationDriver();
 }

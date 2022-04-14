@@ -16,16 +16,15 @@ namespace GraphAware\Neo4j\OGM;
 use Doctrine\Common\Collections\AbstractLazyCollection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Laudis\Neo4j\Types\Node;
-use Laudis\Neo4j\Types\Relationship;
 use GraphAware\Neo4j\OGM\Exception\OGMInvalidArgumentException;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
-use GraphAware\Neo4j\OGM\Persister\EntityPersister;
-use GraphAware\Neo4j\OGM\Persister\RelationshipEntityPersister;
-use GraphAware\Neo4j\OGM\Persister\RelationshipPersister;
+use GraphAware\Neo4j\OGM\Persisters\RelationshipEntityPersister;
+use GraphAware\Neo4j\OGM\Persisters\RelationshipPersister;
 use GraphAware\Neo4j\OGM\Proxy\LazyCollection;
+use Laudis\Neo4j\Types\Node;
+use Laudis\Neo4j\Types\Relationship;
 use LogicException;
 use ReflectionClass;
 use ReflectionObject;
@@ -63,8 +62,6 @@ class UnitOfWork
 
     private array $relEntitesScheduledForDelete = [];
 
-    private array $persisters = [];
-
     private array $relationshipEntityPersisters = [];
 
     private RelationshipPersister $relationshipPersister;
@@ -75,8 +72,6 @@ class UnitOfWork
 
     private array $entityStateReferences = [];
 
-    private array $managedRelationshipEntities = [];
-
     private array $relationshipEntityReferences = [];
 
     private array $relationshipEntityStates = [];
@@ -84,8 +79,6 @@ class UnitOfWork
     private array $reEntityIds = [];
 
     private array $reEntitiesById = [];
-
-    private array $managedRelationshipEntitiesMap = [];
 
     private array $reOriginalData = [];
 
@@ -259,7 +252,7 @@ class UnitOfWork
         }
     }
 
-    public function addManagedRelationshipEntity($entity, $pointOfView, $field)
+    public function addManagedRelationshipEntity($entity)
     {
         $id = $this->entityManager->getRelationshipEntityMetadata($entity::class)->getIdValue($entity);
         $oid = spl_object_hash($entity);
@@ -268,9 +261,6 @@ class UnitOfWork
         $this->reEntitiesById[$id] = $entity;
         $this->reEntityIds[$oid] = $id;
         $this->relationshipEntityReferences[$id] = $ref;
-        $poid = spl_object_hash($pointOfView);
-        $this->managedRelationshipEntities[$poid][$field][] = $oid;
-        $this->managedRelationshipEntitiesMap[$oid][$poid] = $field;
         $this->reOriginalData[$oid] = $this->getOriginalRelationshipEntityData($entity);
     }
 
@@ -449,16 +439,6 @@ class UnitOfWork
         return $this->entitiesById[$id] ?? null;
     }
 
-    public function getPersister(string $class): EntityPersister
-    {
-        if (!array_key_exists($class, $this->persisters)) {
-            $classMetadata = $this->entityManager->getClassMetadataFor($class);
-            $this->persisters[$class] = new EntityPersister($this->entityManager, $class, $classMetadata);
-        }
-
-        return $this->persisters[$class];
-    }
-
     public function getRelationshipEntityPersister($class): RelationshipEntityPersister
     {
         if (!array_key_exists($class, $this->relationshipEntityPersisters)) {
@@ -623,7 +603,7 @@ class UnitOfWork
         $classMetadata = $this->entityManager->getClassMetadataFor($className);
         $o = $classMetadata->newInstance();
         $classMetadata->setId($o, $relationship->getId());
-        $this->addManagedRelationshipEntity($o, $sourceEntity, $field);
+        $this->addManagedRelationshipEntity($o);
 
         return $o;
     }
@@ -786,7 +766,7 @@ class UnitOfWork
             throw OGMInvalidArgumentException::entityNotManaged($entity);
         }
 
-        $this->getPersister($entity::class)->refresh($this->entityIds[$oid], $entity);
+        $this->entityManager->getEntityPersister($entity::class)->refresh($this->entityIds[$oid], $entity);
 
         $this->cascadeRefresh($entity, $visited);
     }
@@ -846,7 +826,7 @@ class UnitOfWork
         foreach ($this->nodesScheduledForCreate as $nodeToCreate) {
             $oid = spl_object_hash($nodeToCreate);
             $this->traverseRelationshipEntities($nodeToCreate);
-            $persister = $this->getPersister($nodeToCreate::class);
+            $persister = $this->entityManager->getEntityPersister($nodeToCreate::class);
             $result = $this->entityManager->getDatabaseDriver()
                 ->runStatement($persister->getCreateQuery($nodeToCreate));
             foreach ($result->toArray() as $record) {
@@ -888,7 +868,8 @@ class UnitOfWork
         $statements = [];
         foreach ($this->nodesScheduledForUpdate as $entity) {
             $this->traverseRelationshipEntities($entity);
-            $statements[] = $this->getPersister($entity::class)->getUpdateQuery($entity);
+            $statements[] = $this->entityManager->getEntityPersister($entity::class)->getUpdateQuery($entity);
+            $statements[] = $this->entityManager->getEntityPersister($entity::class)->getUpdateQuery($entity);
         }
         $this->entityManager->getDatabaseDriver()->runStatements($statements);
     }
@@ -899,9 +880,9 @@ class UnitOfWork
         $statements = [];
         foreach ($this->nodesScheduledForDelete as $entity) {
             if (in_array(spl_object_hash($entity), $this->nodesSchduledForDetachDelete)) {
-                $statements[] = $this->getPersister($entity::class)->getDetachDeleteQuery($entity);
+                $statements[] = $this->entityManager->getEntityPersister($entity::class)->getDetachDeleteQuery($entity);
             } else {
-                $statements[] = $this->getPersister($entity::class)->getDeleteQuery($entity);
+                $statements[] = $this->entityManager->getEntityPersister($entity::class)->getDeleteQuery($entity);
             }
             $possiblyDeleted[] = spl_object_hash($entity);
         }

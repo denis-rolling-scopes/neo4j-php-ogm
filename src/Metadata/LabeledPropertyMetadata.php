@@ -14,39 +14,17 @@ declare(strict_types=1);
 namespace GraphAware\Neo4j\OGM\Metadata;
 
 use GraphAware\Neo4j\OGM\Annotations\Label;
+use ReflectionProperty;
 
 final class LabeledPropertyMetadata
 {
-    /**
-     * @var string
-     */
-    private $propertyName;
+    private string $labelName;
 
-    /**
-     * @var \ReflectionProperty
-     */
-    private $reflectionProperty;
-
-    /**
-     * @var \GraphAware\Neo4j\OGM\Annotations\Label
-     */
-    private $annotation;
-
-    /**
-     * @var string
-     */
-    private $labelName;
-
-    /**
-     * @param string                                  $propertyName
-     * @param \ReflectionProperty                     $reflectionProperty
-     * @param \GraphAware\Neo4j\OGM\Annotations\Label $annotation
-     */
-    public function __construct($propertyName, \ReflectionProperty $reflectionProperty, Label $annotation)
-    {
-        $this->propertyName = $propertyName;
-        $this->reflectionProperty = $reflectionProperty;
-        $this->annotation = $annotation;
+    public function __construct(
+        private $propertyName,
+        private ReflectionProperty $reflectionProperty,
+        Label $annotation
+    ) {
         $this->labelName = $annotation->name;
     }
 

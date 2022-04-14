@@ -20,12 +20,12 @@ use GraphAware\Neo4j\OGM\Util\DirectionUtils;
 
 class BasicEntityPersister
 {
-    private string $paramStyle;
+    protected string $paramStyle;
 
     public function __construct(
-        private string $className,
-        private NodeEntityMetadata $classMetadata,
-        private EntityManager $entityManager
+        protected string $className,
+        protected NodeEntityMetadata $classMetadata,
+        protected EntityManager $entityManager
     ) {
         $this->paramStyle = $this->entityManager->isV4() ? '$%s' : '{%s}';
     }
