@@ -21,7 +21,7 @@
         "email": "php@graphaware.com"
     }],
     "require": {
-        "php": ">8.0",
+        "php": ">=8.0",
         "doctrine/annotations": "^1.13",
         "doctrine/collections": "^1.6",
         "doctrine/common": "^3.1",
