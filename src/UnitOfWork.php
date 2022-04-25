@@ -252,7 +252,7 @@ class UnitOfWork
         }
     }
 
-    public function addManagedRelationshipEntity($entity)
+    public function addManagedRelationshipEntity(object $entity): void
     {
         $id = $this->entityManager->getRelationshipEntityMetadata($entity::class)->getIdValue($entity);
         $oid = spl_object_hash($entity);
@@ -439,7 +439,7 @@ class UnitOfWork
         return $this->entitiesById[$id] ?? null;
     }
 
-    public function getRelationshipEntityPersister($class): RelationshipEntityPersister
+    public function getRelationshipEntityPersister(string $class): RelationshipEntityPersister
     {
         if (!array_key_exists($class, $this->relationshipEntityPersisters)) {
             $classMetadata = $this->entityManager->getRelationshipEntityMetadata($class);
@@ -868,7 +868,6 @@ class UnitOfWork
         $statements = [];
         foreach ($this->nodesScheduledForUpdate as $entity) {
             $this->traverseRelationshipEntities($entity);
-            $statements[] = $this->entityManager->getEntityPersister($entity::class)->getUpdateQuery($entity);
             $statements[] = $this->entityManager->getEntityPersister($entity::class)->getUpdateQuery($entity);
         }
         $this->entityManager->getDatabaseDriver()->runStatements($statements);
