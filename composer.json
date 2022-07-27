@@ -1,5 +1,5 @@
 {
-    "name": "autoprotect-group/neo4j-php-ogm",
+    "name": "denis-rolling-scopes/neo4j-php-ogm",
     "description": "PHP Object Graph Mapper for Neo4j",
     "license": "Apache-2.0",
     "keywords": [
