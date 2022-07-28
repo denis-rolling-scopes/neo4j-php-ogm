@@ -6,5 +6,5 @@ phpunit.xml
 vendor/
 *.idea
 .phpunit.result.cache
-logs/
+logs/**
 telepresence.log

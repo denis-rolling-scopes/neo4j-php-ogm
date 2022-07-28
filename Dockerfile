@@ -1,6 +1,6 @@
-FROM composer:2.3.4 as composerDocker
+FROM composer:2.3.10 as composerDocker
 
-FROM php:8.0.9-cli-buster
+FROM php:8.1.8-cli-buster
 
 WORKDIR /application
 
