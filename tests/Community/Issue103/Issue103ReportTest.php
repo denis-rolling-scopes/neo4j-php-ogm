@@ -25,7 +25,7 @@ class Issue103ReportTest extends IntegrationTestCase
         $entity = new Entity($test_entityUuid);
 
         // CREATE CONTEXT
-        $test_contextUuid = 456;
+        $test_contextUuid = '456';
         $context = new Context($test_contextUuid);
         $context->setEntity($entity);
 
