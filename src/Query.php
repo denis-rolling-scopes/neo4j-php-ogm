@@ -147,11 +147,12 @@ class Query
             $row = [];
             $keys = $record->keys();
 
+            $countKeys = count($keys);
             foreach ($keys as $key) {
                 $mode = array_key_exists($key, $this->mappings) ? $this->mappings[$key][1] : self::HYDRATE_RAW;
 
                 if ($mode === self::HYDRATE_SINGLE) {
-                    if (count($keys) === 1) {
+                    if ($countKeys === 1) {
                         $row = $this->entityManager->getEntityHydrator($this->mappings[$key][0])->hydrateNode($record->get($key));
                     } else {
                         $row[$key] = $this->entityManager->getEntityHydrator($this->mappings[$key][0])->hydrateNode($record->get($key));

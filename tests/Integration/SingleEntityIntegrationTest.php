@@ -25,7 +25,7 @@ class SingleEntityIntegrationTest extends IntegrationTestCase
         $this->em->persist($user);
         $this->em->flush();
 
-        $result = $this->client->run('MATCH (n:User {login : {login} }) RETURN n', ['login' => 'jexp']);
+        $result = $this->client->run('MATCH (n:User {login : $login }) RETURN n', ['login' => 'jexp']);
         $this->assertSame(1, $result->count());
         $this->assertSame('jexp', $result->first()->get('n')->getProperty('login'));
     }

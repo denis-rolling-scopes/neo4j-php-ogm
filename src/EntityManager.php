@@ -75,7 +75,7 @@ class EntityManager implements EntityManagerInterface
             ->withDriver('neo4j', $host)
             ->build();
 
-        return new self($client, $cache, $eventManager);
+        return new self($client, $cache, $eventManager, isV4: true);
     }
 
     /**

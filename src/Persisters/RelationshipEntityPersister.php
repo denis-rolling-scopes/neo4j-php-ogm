@@ -93,7 +93,7 @@ class RelationshipEntityPersister
     public function getDeleteQuery(object $entity): Statement
     {
         $query = sprintf(
-            "START rel=rel(%s) DELETE rel RETURN {$this->paramStyle} AS oid",
+            "MATCH ()-[rel]->() WHERE id(rel) = %s DELETE rel RETURN {$this->paramStyle} AS oid",
             $this->classNameMetadata->getIdValue($entity),
             'oid'
         );
