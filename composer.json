@@ -26,7 +26,7 @@
         "doctrine/collections": "^1.6",
         "doctrine/common": "^3.1",
         "doctrine/persistence": "^2.2",
-        "laudis/neo4j-php-client": "^2.8.1",
+        "laudis/neo4j-php-client": "^2.8.2",
         "ext-simplexml": "*"
     },
     "autoload": {
