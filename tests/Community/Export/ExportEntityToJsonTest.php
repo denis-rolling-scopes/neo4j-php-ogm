@@ -1,6 +1,6 @@
 <?php
 
-namespace GraphAware\Neo4j\OGM\Tests\Community;
+namespace GraphAware\Neo4j\OGM\Tests\Community\Export;
 
 use GraphAware\Neo4j\OGM\Tests\Community\Issue21\TestUser;
 use GraphAware\Neo4j\OGM\Tests\Integration\IntegrationTestCase;
@@ -28,5 +28,6 @@ class ExportEntityToJsonTest extends IntegrationTestCase
         $decoded = json_decode($json, true);
         $this->assertArrayHasKey('id', $decoded[0]);
         $this->assertArrayHasKey('name', $decoded[0]);
+        $this->assertEquals('me', $decoded[0]['name']);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -19,61 +21,21 @@ use GraphAware\Neo4j\OGM\Common\Collection;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Proxy\LazyCollection;
 use GraphAware\Neo4j\OGM\Util\ClassUtils;
+use ReflectionProperty;
 
 final class RelationshipMetadata
 {
-    /**
-     * @var string
-     */
-    private $className;
+    private string $propertyName;
 
-    /**
-     * @var string
-     */
-    private $propertyName;
-
-    /**
-     * @var \ReflectionProperty
-     */
-    private $reflectionProperty;
-
-    /**
-     * @var \GraphAware\Neo4j\OGM\Annotations\Relationship
-     */
-    private $relationshipAnnotation;
-
-    /**
-     * @var bool
-     */
-    private $isLazy;
-
-    /**
-     * @var bool
-     */
-    private $isFetch;
-
-    /**
-     * @var OrderBy
-     */
-    private $orderBy;
-
-    /**
-     * @param string                                         $className
-     * @param \ReflectionProperty                            $reflectionProperty
-     * @param \GraphAware\Neo4j\OGM\Annotations\Relationship $relationshipAnnotation
-     * @param bool                                           $isLazy
-     * @param OrderBy                                        $orderBy
-     * @param mixed                                          $isFetch
-     */
-    public function __construct($className, \ReflectionProperty $reflectionProperty, Relationship $relationshipAnnotation, $isLazy = false, $isFetch = false, OrderBy $orderBy = null)
-    {
-        $this->className = $className;
+    public function __construct(
+        private string $className,
+        private ReflectionProperty $reflectionProperty,
+        private Relationship $relationshipAnnotation,
+        private bool $isLazy = false,
+        private ?bool $isFetch = false,
+        private ?OrderBy $orderBy = null
+    ) {
         $this->propertyName = $reflectionProperty->getName();
-        $this->reflectionProperty = $reflectionProperty;
-        $this->relationshipAnnotation = $relationshipAnnotation;
-        $this->isLazy = $isLazy;
-        $this->isFetch = $isFetch;
-        $this->orderBy = $orderBy;
         if (null !== $orderBy) {
             if (!in_array($orderBy->order, ['ASC', 'DESC'], true)) {
                 throw new MappingException(sprintf('The order "%s" is not valid', $orderBy->order));
@@ -81,138 +43,87 @@ final class RelationshipMetadata
         }
     }
 
-    /**
-     * @return string
-     */
-    public function getPropertyName()
+    public function getPropertyName(): string
     {
         return $this->propertyName;
     }
 
-    /**
-     * @return \ReflectionProperty
-     */
-    public function getReflectionProperty()
+    public function getReflectionProperty(): ReflectionProperty
     {
         return $this->reflectionProperty;
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         return $this->relationshipAnnotation->type;
     }
 
-    /**
-     * @return bool
-     */
-    public function isRelationshipEntity()
+    public function isRelationshipEntity(): bool
     {
         return null !== $this->relationshipAnnotation->relationshipEntity;
     }
 
-    /**
-     * @return bool
-     */
-    public function isTargetEntity()
+    public function isTargetEntity(): bool
     {
         return null !== $this->relationshipAnnotation->targetEntity;
     }
 
-    /**
-     * @return bool
-     */
-    public function isCollection()
+    public function isCollection(): bool
     {
         return true === $this->relationshipAnnotation->collection;
     }
 
-    /**
-     * @return bool
-     */
-    public function isLazy()
+    public function isLazy(): bool
     {
         return $this->isLazy;
     }
 
-    /**
-     * @return bool
-     */
-    public function isFetch()
+    public function isFetch(): ?bool
     {
         return $this->isFetch;
     }
 
-    /**
-     * @return string
-     */
-    public function getDirection()
+    public function getDirection(): string
     {
         return $this->relationshipAnnotation->direction;
     }
 
-    /**
-     * @return string
-     */
-    public function getTargetEntity()
+    public function getTargetEntity(): string
     {
         return ClassUtils::getFullClassName($this->relationshipAnnotation->targetEntity, $this->className);
     }
 
-    /**
-     * @return string
-     */
-    public function getRelationshipEntityClass()
+    public function getRelationshipEntityClass(): string
     {
         return ClassUtils::getFullClassName($this->relationshipAnnotation->relationshipEntity, $this->className);
     }
 
-    /**
-     * @return bool
-     */
-    public function hasMappedByProperty()
+    public function hasMappedByProperty(): bool
     {
         return null !== $this->relationshipAnnotation->mappedBy;
     }
 
-    /**
-     * @return string
-     */
-    public function getMappedByProperty()
+    public function getMappedByProperty(): ?string
     {
         return $this->relationshipAnnotation->mappedBy;
     }
 
-    /**
-     * @return bool
-     */
-    public function hasOrderBy()
+    public function hasOrderBy(): bool
     {
         return null !== $this->orderBy;
     }
 
-    /**
-     * @return string
-     */
-    public function getOrderByProperty()
+    public function getOrderByProperty(): string
     {
         return $this->orderBy->property;
     }
 
-    /**
-     * @return string
-     */
-    public function getOrder()
+    public function getOrder(): string
     {
         return $this->orderBy->order;
     }
 
-    /**
-     * @param $object
-     */
-    public function initializeCollection($object)
+    public function initializeCollection(object $object)
     {
         if (!$this->isCollection()) {
             throw new \LogicException(sprintf('The property mapping this relationship is not of collection type in "%s"', $this->className));
@@ -228,17 +139,12 @@ final class RelationshipMetadata
         $this->setValue($object, new Collection());
     }
 
-    /**
-     * @param object $object
-     * @param mixed  $value
-     */
-    public function addToCollection($object, $value)
+    public function addToCollection(object $object, mixed $value)
     {
         if (!$this->isCollection()) {
             throw new \LogicException(sprintf('The property mapping of this relationship is not of collection type in "%s"', $this->className));
         }
 
-        /** @var Collection $coll */
         $coll = $this->getValue($object);
 
         if ($coll instanceof LazyCollection) {
@@ -263,33 +169,21 @@ final class RelationshipMetadata
         }
     }
 
-    /**
-     * @param $object
-     *
-     * @return mixed
-     */
-    public function getValue($object)
+    public function getValue(object $object): mixed
     {
         $this->reflectionProperty->setAccessible(true);
 
         return $this->reflectionProperty->getValue($object);
     }
 
-    /**
-     * @param $object
-     * @param $value
-     */
-    public function setValue($object, $value)
+    public function setValue(object $object, mixed $value)
     {
         $this->reflectionProperty->setAccessible(true);
         $this->reflectionProperty->setValue($object, $value);
     }
 
-    /**
-     * @return string
-     */
-    public function getAlias()
+    public function getAlias(): string
     {
-        return strtolower(str_replace('\\', '_', $this->className).'_'.$this->propertyName);
+        return strtolower(str_replace('\\', '_', $this->className) . '_' . $this->propertyName);
     }
 }

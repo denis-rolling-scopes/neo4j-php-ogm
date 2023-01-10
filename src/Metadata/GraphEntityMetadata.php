@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -11,43 +13,20 @@
 
 namespace GraphAware\Neo4j\OGM\Metadata;
 
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use DateTime;
+use Doctrine\Persistence\Mapping\ClassMetadata;
+use ReflectionClass;
 
 abstract class GraphEntityMetadata implements ClassMetadata
 {
-    /**
-     * @var \GraphAware\Neo4j\OGM\Metadata\EntityIdMetadata
-     */
-    protected $entityIdMetadata;
+    protected array $entityPropertiesMetadata = [];
 
-    /**
-     * @var string
-     */
-    protected $className;
-
-    /**
-     * @var \ReflectionClass
-     */
-    protected $reflectionClass;
-
-    /**
-     * @var EntityPropertyMetadata[]
-     */
-    protected $entityPropertiesMetadata = [];
-
-    /**
-     * GraphEntityMetadata constructor.
-     *
-     * @param \GraphAware\Neo4j\OGM\Metadata\EntityIdMetadata $entityIdMetadata
-     * @param string                                          $className
-     * @param \ReflectionClass                                $reflectionClass
-     * @param $entityPropertiesMetadata
-     */
-    public function __construct(EntityIdMetadata $entityIdMetadata, $className, \ReflectionClass $reflectionClass, array $entityPropertiesMetadata)
-    {
-        $this->entityIdMetadata = $entityIdMetadata;
-        $this->className = $className;
-        $this->reflectionClass = $reflectionClass;
+    public function __construct(
+        protected EntityIdMetadata $entityIdMetadata,
+        protected string $className,
+        protected ReflectionClass $reflectionClass,
+        array $entityPropertiesMetadata
+    ) {
         foreach ($entityPropertiesMetadata as $meta) {
             if ($meta instanceof EntityPropertyMetadata) {
                 $this->entityPropertiesMetadata[$meta->getPropertyName()] = $meta;
@@ -55,22 +34,22 @@ abstract class GraphEntityMetadata implements ClassMetadata
         }
     }
 
-    public function getName()
+    public function getName(): string
     {
         return $this->className;
     }
 
-    public function getReflectionClass()
+    public function getReflectionClass(): ReflectionClass
     {
         return $this->reflectionClass;
     }
 
-    public function isIdentifier($fieldName)
+    public function isIdentifier($fieldName): bool
     {
         return $this->entityIdMetadata->getPropertyName() === $fieldName;
     }
 
-    public function hasField($fieldName)
+    public function hasField($fieldName): bool
     {
         foreach ($this->entityPropertiesMetadata as $entityPropertyMetadata) {
             if ($entityPropertyMetadata->getPropertyName() === $fieldName) {
@@ -81,7 +60,7 @@ abstract class GraphEntityMetadata implements ClassMetadata
         return false;
     }
 
-    public function getFieldNames()
+    public function getFieldNames(): array
     {
         $fields = [];
         $fields[] = $this->entityIdMetadata->getPropertyName();
@@ -92,79 +71,53 @@ abstract class GraphEntityMetadata implements ClassMetadata
         return $fields;
     }
 
-    public function getIdentifierFieldNames()
+    public function getIdentifierFieldNames(): array
     {
         return [$this->entityIdMetadata->getPropertyName()];
     }
 
-    public function getTypeOfField($fieldName)
+    public function getTypeOfField($fieldName): ?string
     {
         // TODO: Implement getTypeOfField() method.
         return null;
     }
 
-    public function getIdentifierValues($object)
+    public function getIdentifierValues($object): array
     {
         return [$this->getIdValue($object)];
     }
 
-    /**
-     * @return string
-     */
-    public function getClassName()
+    public function getClassName(): string
     {
         return $this->className;
     }
 
-    /**
-     * @return object
-     */
-    public function newInstance()
+    public function newInstance(): object
     {
         return $this->reflectionClass->newInstanceWithoutConstructor();
     }
 
-    /**
-     * @param $object
-     *
-     * @return mixed
-     */
-    public function getIdValue($object)
+    public function getIdValue(object $object): mixed
     {
         return $this->entityIdMetadata->getValue($object);
     }
 
-    /**
-     * @param $object
-     * @param $value
-     */
-    public function setId($object, $value)
+    public function setId(object $object, string|int $value)
     {
         $this->entityIdMetadata->setValue($object, $value);
     }
 
-    /**
-     * @return string
-     */
-    public function getIdentifier()
+    public function getIdentifier(): string|array
     {
         return $this->entityIdMetadata->getPropertyName();
     }
 
-    /**
-     * @return \GraphAware\Neo4j\OGM\Metadata\EntityPropertyMetadata[]
-     */
-    public function getPropertiesMetadata()
+    public function getPropertiesMetadata(): array
     {
         return $this->entityPropertiesMetadata;
     }
 
-    /**
-     * @param $key
-     *
-     * @return \GraphAware\Neo4j\OGM\Metadata\EntityPropertyMetadata|null
-     */
-    public function getPropertyMetadata($key)
+    public function getPropertyMetadata($key): ?EntityPropertyMetadata
     {
         if (array_key_exists($key, $this->entityPropertiesMetadata)) {
             return $this->entityPropertiesMetadata[$key];
@@ -173,33 +126,19 @@ abstract class GraphEntityMetadata implements ClassMetadata
         return null;
     }
 
-    /**
-     * @param object $object
-     *
-     * @return array
-     */
-    public function getPropertyValuesArray($object)
+    public function getPropertyValuesArray(object $object): array
     {
         $values = [];
         foreach ($this->entityPropertiesMetadata as $entityPropertyMetadata) {
-            $v = $entityPropertyMetadata->getValue($object);
-            if (is_object($v)) {
-                switch (get_class($v)) {
-                    case \DateTime::class:
-                        $v = $v->getTimestamp();
-                        break;
-                }
-            }
-            $values[$entityPropertyMetadata->getPropertyName()] = $v;
+            $value = $entityPropertyMetadata->getValue($object);
+            $value = ($value instanceof DateTime) ? $value->getTimestamp() : $value;
+            $values[$entityPropertyMetadata->getPropertyName()] = $value;
         }
 
         return $values;
     }
 
-    /**
-     * @return string
-     */
-    public function getEntityAlias()
+    public function getEntityAlias(): string
     {
         return strtolower(str_replace('\\', '_', $this->className));
     }

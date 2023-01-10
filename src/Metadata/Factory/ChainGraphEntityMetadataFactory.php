@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -13,13 +15,13 @@ namespace GraphAware\Neo4j\OGM\Metadata\Factory;
 
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Exception\MetadataFactoryException;
+use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
+use GraphAware\Neo4j\OGM\Metadata\QueryResultMapper;
+use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
 
 class ChainGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInterface
 {
-    /**
-     * @var GraphEntityMetadataFactoryInterface[]
-     */
-    private $innerFactories;
+    private array $innerFactories;
 
     public function __construct()
     {
@@ -38,7 +40,7 @@ class ChainGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInter
         ksort($this->innerFactories);
     }
 
-    public function create($className)
+    public function create($className): RelationshipEntityMetadata|NodeEntityMetadata
     {
         foreach ($this->innerFactories as $innerFactory) {
             if ($innerFactory->supports($className)) {
@@ -49,7 +51,7 @@ class ChainGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInter
         throw new MappingException(sprintf('The class "%s" is not a valid OGM entity', $className));
     }
 
-    public function supports($className)
+    public function supports($className): bool
     {
         foreach ($this->innerFactories as $innerFactory) {
             if ($innerFactory->supports($className)) {
@@ -60,7 +62,7 @@ class ChainGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInter
         return false;
     }
 
-    public function createQueryResultMapper($className)
+    public function createQueryResultMapper($className): QueryResultMapper
     {
         foreach ($this->innerFactories as $innerFactory) {
             if ($innerFactory->supportsQueryResult($className)) {
@@ -71,7 +73,7 @@ class ChainGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInter
         throw new MappingException(sprintf('The class "%s" is not a valid QueryResult entity', $className));
     }
 
-    public function supportsQueryResult($className)
+    public function supportsQueryResult($className): bool
     {
         foreach ($this->innerFactories as $innerFactory) {
             if ($innerFactory->supportsQueryResult($className)) {

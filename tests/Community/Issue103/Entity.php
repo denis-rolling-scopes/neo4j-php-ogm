@@ -14,20 +14,20 @@ class Entity
      * @OGM\GraphId()
      * @var int
      */
-    protected $id;
+    protected int $id;
 
     /**
      * @OGM\Property(type="string")
      * @var string
      */
-    protected $name;
+    protected string $name;
 
 
     /**
      * @OGM\Relationship(type="HAS_CONTEXT", direction="OUTGOING", targetEntity="Context", collection=true, mappedBy="entity")
      * @var ArrayCollection|Context[];
      */
-    protected $contexts;
+    protected array|ArrayCollection $contexts;
 
     public function __construct($name)
     {
@@ -39,7 +39,7 @@ class Entity
     /**
      * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
@@ -47,7 +47,7 @@ class Entity
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -55,15 +55,15 @@ class Entity
     /**
      * @param string $name
      */
-    public function setName($name)
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
 
     /**
-     * @return \Doctrine\Common\Collections\ArrayCollection|Context[];
+     * @return ArrayCollection|Context[];
      */
-    public function getContexts()
+    public function getContexts(): ArrayCollection|array
     {
         return $this->contexts;
     }
@@ -71,7 +71,7 @@ class Entity
     /**
      * @param Context $context
      */
-    public function addContext(Context $context)
+    public function addContext(Context $context): void
     {
         if (!$this->contexts->contains($context)) {
             $this->contexts->add($context);
@@ -81,7 +81,7 @@ class Entity
     /**
      * @param Context $context
      */
-    public function removeContext(Context $context)
+    public function removeContext(Context $context): void
     {
         if ($this->contexts->contains($context)) {
             $this->contexts->removeElement($context);

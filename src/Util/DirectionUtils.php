@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -13,9 +15,7 @@ namespace GraphAware\Neo4j\OGM\Util;
 
 class DirectionUtils
 {
-    const INCOMING = 'INCOMING';
+    public const INCOMING = 'INCOMING';
 
-    const OUTGOING = 'OUTGOING';
-
-    const BOTH = 'BOTH';
+    public const OUTGOING = 'OUTGOING';
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -15,6 +17,7 @@ use GraphAware\Neo4j\OGM\Annotations\RelationshipEntity;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
 use GraphAware\Neo4j\OGM\Util\ClassUtils;
+use ReflectionClass;
 
 class RelationshipEntityMetadataFactory
 {
@@ -61,7 +64,7 @@ class RelationshipEntityMetadataFactory
         $endNodeKey = (string) $endNode['name'];
         $endNodeClass = ClassUtils::getFullClassName((string) $endNode['target-entity'], $className);
 
-        $reflection = new \ReflectionClass($className);
+        $reflection = new ReflectionClass($className);
 
         return new RelationshipEntityMetadata(
             $className,
@@ -76,13 +79,7 @@ class RelationshipEntityMetadataFactory
         );
     }
 
-    /**
-     * @param \SimpleXMLElement $node
-     * @param string            $className
-     *
-     * @return RelationshipEntity
-     */
-    private function buildRelationshipMetadata(\SimpleXMLElement $node, $className)
+    private function buildRelationshipMetadata(\SimpleXMLElement $node, string $className): RelationshipEntity
     {
         if (!isset($node['type'])) {
             throw new MappingException(

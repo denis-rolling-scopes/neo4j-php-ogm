@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -23,22 +25,20 @@ use GraphAware\Neo4j\OGM\Metadata\EntityPropertyMetadata;
 use GraphAware\Neo4j\OGM\Metadata\IdAnnotationMetadata;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
 use GraphAware\Neo4j\OGM\Util\ClassUtils;
+use ReflectionClass;
 
 final class RelationshipEntityMetadataFactory
 {
-    private $reader;
+    private PropertyAnnotationMetadataFactory $propertyAnnotationMetadataFactory;
 
-    private $propertyAnnotationMetadataFactory;
-
-    public function __construct(Reader $reader)
+    public function __construct(private Reader $reader)
     {
-        $this->reader = $reader;
         $this->propertyAnnotationMetadataFactory = new PropertyAnnotationMetadataFactory($reader);
     }
 
-    public function create($class)
+    public function create($class): RelationshipEntityMetadata
     {
-        $reflectionClass = new \ReflectionClass($class);
+        $reflectionClass = new ReflectionClass($class);
         $annotation = $this->reader->getClassAnnotation($reflectionClass, RelationshipEntity::class);
         $entityIdMetadata = null;
         $startNodeMetadata = null;
@@ -48,12 +48,18 @@ final class RelationshipEntityMetadataFactory
         $endNodeKey = null;
 
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
-            if (null === $entityIdMetadata && null !== $idAnnotation = $this->reader->getPropertyAnnotation($reflectionProperty, GraphId::class)) {
-                $entityIdMetadata = new EntityIdMetadata($reflectionProperty->getName(), $reflectionProperty, new IdAnnotationMetadata());
+            if (
+                null === $entityIdMetadata
+                && null !== $this->reader->getPropertyAnnotation($reflectionProperty, GraphId::class)
+            ) {
+                $entityIdMetadata = new EntityIdMetadata($reflectionProperty->getName(), $reflectionProperty);
                 continue;
             }
 
-            if (null === $startNodeMetadata && null !== $startAnnotation = $this->reader->getPropertyAnnotation($reflectionProperty, StartNode::class)) {
+            if (
+                null === $startNodeMetadata
+                && null !== $startAnnotation = $this->reader->getPropertyAnnotation($reflectionProperty, StartNode::class)
+            ) {
                 $startNodeClass = ClassUtils::getFullClassName($startAnnotation->targetEntity, $class);
                 $startNodeMetadata = $startNodeClass;
                 $startNodeKey = $reflectionProperty->getName();
@@ -69,11 +75,26 @@ final class RelationshipEntityMetadataFactory
 
             $converter = $this->reader->getPropertyAnnotation($reflectionProperty, Convert::class);
 
-            if (null !== $propertyAnnotation = $this->reader->getPropertyAnnotation($reflectionProperty, Property::class)) {
-                $propertiesMetadata[] = new EntityPropertyMetadata($reflectionProperty->getName(), $reflectionProperty, $this->propertyAnnotationMetadataFactory->create($class, $reflectionProperty->getName()), $converter);
+            if (null !== $this->reader->getPropertyAnnotation($reflectionProperty, Property::class)) {
+                $propertiesMetadata[] = new EntityPropertyMetadata(
+                    $reflectionProperty->getName(),
+                    $reflectionProperty,
+                    $this->propertyAnnotationMetadataFactory->create($class, $reflectionProperty->getName()),
+                    $converter
+                );
             }
         }
 
-        return new RelationshipEntityMetadata($class, $reflectionClass, $annotation, $entityIdMetadata, $startNodeMetadata, $startNodeKey, $endNodeMetadata, $endNodeKey, $propertiesMetadata);
+        return new RelationshipEntityMetadata(
+            $class,
+            $reflectionClass,
+            $annotation,
+            $entityIdMetadata,
+            $startNodeMetadata,
+            $startNodeKey,
+            $endNodeMetadata,
+            $endNodeKey,
+            $propertiesMetadata
+        );
     }
 }

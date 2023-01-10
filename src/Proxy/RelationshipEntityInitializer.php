@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -11,11 +13,9 @@
 
 namespace GraphAware\Neo4j\OGM\Proxy;
 
-use GraphAware\Common\Type\Node;
-
 class RelationshipEntityInitializer extends SingleNodeInitializer
 {
-    public function initialize(Node $node, $baseInstance)
+    public function initialize($baseInstance)
     {
         $persister = $this->em->getEntityPersister($this->metadata->getClassName());
         $persister->getRelationshipEntity($this->relationshipMetadata->getPropertyName(), $baseInstance);

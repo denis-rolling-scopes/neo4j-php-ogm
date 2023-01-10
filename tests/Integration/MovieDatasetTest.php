@@ -22,7 +22,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\MoviesDemo\Person;
  */
 class MovieDatasetTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();
@@ -209,7 +209,7 @@ class MovieDatasetTest extends IntegrationTestCase
 
     public function testDegreeOfNodeIsReturned()
     {
-        $degree = $this->client->run('MATCH (n:Person {name:"Tom Hanks"}) RETURN size((n)-[:ACTED_IN]->()) AS c')->firstRecord()->get('c');
+        $degree = $this->client->run('MATCH (n:Person {name:"Tom Hanks"}) RETURN size((n)-[:ACTED_IN]->()) AS c')->first()->get('c');
         /** @var Person $person */
         $person = $this->em->getRepository(Person::class)->findOneBy(['name' => 'Tom Hanks']);
         $this->assertEquals($degree, $person->getMovies()->count());

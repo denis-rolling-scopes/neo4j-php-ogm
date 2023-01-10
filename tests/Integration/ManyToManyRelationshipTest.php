@@ -21,7 +21,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\ManyToManyRelationship\User;
  */
 class ManyToManyRelationshipTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();
@@ -38,7 +38,7 @@ class ManyToManyRelationshipTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (g1:Group {name:"owners"})<-[:IN_GROUP]-(u:User {login:"jim"})-[:IN_GROUP]->(g2:Group {name:"creators"}) RETURN u, g1, g2');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
     }
 
     public function testUserCanBeLoadedWithGroups()
@@ -77,7 +77,7 @@ class ManyToManyRelationshipTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (n:User {login:"jim"})-[:IN_GROUP]->(g) RETURN n, g');
-        $this->assertSame(3, $result->size());
+        $this->assertSame(3, $result->count());
     }
 
     public function testUserCanHaveGroupAddedAfterClear()
@@ -98,7 +98,7 @@ class ManyToManyRelationshipTest extends IntegrationTestCase
         $jim->getGroups()->add($ng);
         $this->em->flush();
         $result = $this->client->run('MATCH (n:User {login:"jim"})-[:IN_GROUP]->(g) RETURN n, g');
-        $this->assertSame(3, $result->size());
+        $this->assertSame(3, $result->count());
     }
 
     public function testGroupNameCanChange()
@@ -120,6 +120,6 @@ class ManyToManyRelationshipTest extends IntegrationTestCase
         }
         $this->em->flush();
         $result = $this->client->run('MATCH (n:User {login:"jim"})-[:IN_GROUP]->(g:Group {name:"newname"}) RETURN n, g');
-        $this->assertSame(2, $result->size());
+        $this->assertSame(2, $result->count());
     }
 }

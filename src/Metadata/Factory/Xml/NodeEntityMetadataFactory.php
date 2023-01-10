@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -14,32 +16,21 @@ namespace GraphAware\Neo4j\OGM\Metadata\Factory\Xml;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Metadata\NodeAnnotationMetadata;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
+use ReflectionClass;
+use SimpleXMLElement;
 
 class NodeEntityMetadataFactory
 {
-    private $propertyXmlMetadataFactory;
-    private $relationshipXmlMetadataFactory;
-    private $idXmlMetadataFactory;
-
     public function __construct(
-        PropertyXmlMetadataFactory $propertyXmlMetadataFactory,
-        RelationshipXmlMetadataFactory $relationshipXmlMetadataFactory,
-        IdXmlMetadataFactory $idXmlMetadataFactory
+        private PropertyXmlMetadataFactory $propertyXmlMetadataFactory,
+        private RelationshipXmlMetadataFactory $relationshipXmlMetadataFactory,
+        private IdXmlMetadataFactory $idXmlMetadataFactory
     ) {
-        $this->propertyXmlMetadataFactory = $propertyXmlMetadataFactory;
-        $this->relationshipXmlMetadataFactory = $relationshipXmlMetadataFactory;
-        $this->idXmlMetadataFactory = $idXmlMetadataFactory;
     }
 
-    /**
-     * @param \SimpleXMLElement $node
-     * @param string            $className
-     *
-     * @return NodeEntityMetadata
-     */
-    public function buildNodeEntityMetadata(\SimpleXMLElement $node, $className)
+    public function buildNodeEntityMetadata(SimpleXMLElement $node, string $className): NodeEntityMetadata
     {
-        $reflection = new \ReflectionClass($className);
+        $reflection = new ReflectionClass($className);
 
         return new NodeEntityMetadata(
             $className,
@@ -51,13 +42,7 @@ class NodeEntityMetadataFactory
         );
     }
 
-    /**
-     * @param \SimpleXMLElement $node
-     * @param string            $className
-     *
-     * @return NodeAnnotationMetadata
-     */
-    private function buildNodeMetadata(\SimpleXMLElement $node, $className)
+    private function buildNodeMetadata(SimpleXMLElement $node, string $className): NodeAnnotationMetadata
     {
         if (!isset($node['label'])) {
             throw new MappingException(

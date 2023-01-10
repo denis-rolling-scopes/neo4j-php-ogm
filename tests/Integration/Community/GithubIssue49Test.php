@@ -40,7 +40,7 @@ class GithubIssue49Test extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (c:Car {model:"Bugatti"})-[:HAS_MODEL_NUMBER]->(m:ModelNumber {number:"Foobar"}) RETURN m, c');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
     }
 
     /**

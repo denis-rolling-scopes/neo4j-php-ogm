@@ -20,7 +20,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\Base\User;
  */
 class RepositoryFindByTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();
@@ -63,7 +63,7 @@ class RepositoryFindByTest extends IntegrationTestCase
         $this->em->flush();
         $this->em->clear();
 
-        $this->setExpectedException(\LogicException::class);
+        $this->expectException(\LogicException::class);
         $user = $this->em->getRepository(User::class)->findOneBy(['login' => 'user1']);
     }
 }

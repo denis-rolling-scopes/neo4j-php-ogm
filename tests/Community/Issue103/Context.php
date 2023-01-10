@@ -14,24 +14,24 @@ class Context
      * @OGM\GraphId()
      * @var int
      */
-    protected $id;
+    protected int $id;
 
     /**
      * @OGM\Property(type="string")
      * @var string
      */
-    protected $name;
+    protected string $name;
 
     /**
      * @OGM\Relationship(type="HAS_CONTEXT", direction="INCOMING", targetEntity="Entity", collection=false, mappedBy="contexts")
-     * @var string
+     * @var Entity
      */
-    protected $entity;
+    protected Entity $entity;
 
     /**
      * @param string $name
      */
-    public function __construct($name)
+    public function __construct(string $name)
     {
         $this->name = $name;
     }
@@ -39,7 +39,7 @@ class Context
     /**
      * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
@@ -47,7 +47,7 @@ class Context
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -55,26 +55,18 @@ class Context
     /**
      * @param string $name
      */
-    public function setName($name)
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
 
-    /**
-     * @return string
-     */
-    public function getEntity()
+    public function getEntity(): Entity
     {
         return $this->entity;
     }
 
-    /**
-     * @param string $entity
-     */
-    public function setEntity($entity)
+    public function setEntity(Entity $entity): void
     {
         $this->entity = $entity;
     }
-
-    
 }

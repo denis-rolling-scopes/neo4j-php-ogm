@@ -23,7 +23,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\OneToManyRE\Owner;
  */
 class OneToManyRelationshipEntityTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();
@@ -184,6 +184,6 @@ class OneToManyRelationshipEntityTest extends IntegrationTestCase
         // assert second flush is safe
         $this->em->flush();
         $result = $this->client->run('MATCH (o:Owner)-[r:ACQUIRED]->(h) RETURN count(r) AS c');
-        $this->assertSame(1, $result->firstRecord()->get('c'));
+        $this->assertSame(1, $result->first()->get('c'));
     }
 }

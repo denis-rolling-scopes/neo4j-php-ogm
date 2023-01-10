@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -14,18 +16,15 @@ namespace GraphAware\Neo4j\OGM\Metadata\Factory\Xml;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Metadata\EntityIdMetadata;
 use GraphAware\Neo4j\OGM\Metadata\IdAnnotationMetadata;
+use ReflectionClass;
 
 class IdXmlMetadataFactory
 {
-    /**
-     * @param \SimpleXMLElement $node
-     * @param string            $className
-     * @param \ReflectionClass  $reflection
-     *
-     * @return EntityIdMetadata
-     */
-    public function buildEntityIdMetadata(\SimpleXMLElement $node, $className, \ReflectionClass $reflection)
-    {
+    public function buildEntityIdMetadata(
+        \SimpleXMLElement $node,
+        string $className,
+        ReflectionClass $reflection
+    ): EntityIdMetadata {
         if (!isset($node->id) || !isset($node->id['name'])) {
             throw new MappingException(
                 sprintf('Class "%s" OGM XML configuration has invalid or missing "id" element', $className)
@@ -34,8 +33,7 @@ class IdXmlMetadataFactory
 
         return new EntityIdMetadata(
             (string) $node->id['name'],
-            $reflection->getProperty((string) $node->id['name']),
-            new IdAnnotationMetadata()
+            $reflection->getProperty((string) $node->id['name'])
         );
     }
 }

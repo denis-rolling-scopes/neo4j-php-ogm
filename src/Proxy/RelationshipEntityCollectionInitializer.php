@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -11,21 +13,20 @@
 
 namespace GraphAware\Neo4j\OGM\Proxy;
 
-use GraphAware\Common\Type\Node;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
 
 class RelationshipEntityCollectionInitializer extends RelationshipEntityInitializer
 {
-    public function initialize(Node $node, $baseInstance)
+    public function initialize($baseInstance)
     {
-        $persister = $this->em->getEntityPersister($this->metadata->getClassName());
-        $persister->getRelationshipEntityCollection($this->relationshipMetadata->getPropertyName(), $baseInstance);
+        $persist = $this->em->getEntityPersister($this->metadata->getClassName());
+        $persist->getRelationshipEntityCollection($this->relationshipMetadata->getPropertyName(), $baseInstance);
     }
 
     public function getCount($baseInstance, RelationshipMetadata $relationshipMetadata)
     {
-        $persister = $this->em->getEntityPersister($this->metadata->getClassName());
+        $persist = $this->em->getEntityPersister($this->metadata->getClassName());
 
-        return $persister->getCountForRelationship($relationshipMetadata->getPropertyName(), $baseInstance);
+        return $persist->getCountForRelationship($relationshipMetadata->getPropertyName(), $baseInstance);
     }
 }

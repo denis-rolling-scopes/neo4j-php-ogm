@@ -12,7 +12,7 @@
 namespace GraphAware\Neo4j\OGM\Tests\Metadata\Factory;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Persistence\Mapping\Driver\SymfonyFileLocator;
+use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
 use GraphAware\Neo4j\OGM\Metadata\EntityPropertyMetadata;
 use GraphAware\Neo4j\OGM\Metadata\Factory\Annotation\AnnotationGraphEntityMetadataFactory;
 use GraphAware\Neo4j\OGM\Metadata\Factory\Xml\IdXmlMetadataFactory;
@@ -27,25 +27,21 @@ use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\Movie;
 use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\MovieRepository;
 use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\Person;
 use GraphAware\Neo4j\OGM\Tests\Metadata\Factory\Fixtures\Rating;
+use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class GraphEntityMetadataFactoryTest.
  *
  * @group xml-mapping
  */
-class GraphEntityMetadataFactoryTest extends \PHPUnit_Framework_TestCase
+class GraphEntityMetadataFactoryTest extends TestCase
 {
-    /**
-     * @var AnnotationGraphEntityMetadataFactory
-     */
-    private $annotationMetadataFactory;
+    private AnnotationGraphEntityMetadataFactory $annotationMetadataFactory;
 
-    /**
-     * @var XmlGraphEntityMetadataFactory
-     */
-    private $xmlMetadataFactory;
+    private XmlGraphEntityMetadataFactory $xmlMetadataFactory;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->annotationMetadataFactory = new AnnotationGraphEntityMetadataFactory(new AnnotationReader());
         $this->xmlMetadataFactory = new XmlGraphEntityMetadataFactory(
@@ -84,7 +80,7 @@ class GraphEntityMetadataFactoryTest extends \PHPUnit_Framework_TestCase
         $createdMetadata = $personMetadata->getPropertyMetadata('created');
         $this->assertTrue($createdMetadata->hasConverter());
         $this->assertEquals('datetime', $createdMetadata->getConverterType());
-        $this->assertInternalType('array', $createdMetadata->getConverterOptions());
+        $this->assertIsArray($createdMetadata->getConverterOptions());
         $this->assertArrayHasKey('db_format', $createdMetadata->getConverterOptions());
     }
 
@@ -112,6 +108,7 @@ class GraphEntityMetadataFactoryTest extends \PHPUnit_Framework_TestCase
             }
         }
         libxml_use_internal_errors($previous);
+        $this->addToAssertionCount(1);
     }
 
     /**

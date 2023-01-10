@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -12,39 +14,17 @@
 namespace GraphAware\Neo4j\OGM\Metadata;
 
 use GraphAware\Neo4j\OGM\Annotations\Label;
+use ReflectionProperty;
 
 final class LabeledPropertyMetadata
 {
-    /**
-     * @var string
-     */
-    private $propertyName;
+    private string $labelName;
 
-    /**
-     * @var \ReflectionProperty
-     */
-    private $reflectionProperty;
-
-    /**
-     * @var \GraphAware\Neo4j\OGM\Annotations\Label
-     */
-    private $annotation;
-
-    /**
-     * @var string
-     */
-    private $labelName;
-
-    /**
-     * @param string                                  $propertyName
-     * @param \ReflectionProperty                     $reflectionProperty
-     * @param \GraphAware\Neo4j\OGM\Annotations\Label $annotation
-     */
-    public function __construct($propertyName, \ReflectionProperty $reflectionProperty, Label $annotation)
-    {
-        $this->propertyName = $propertyName;
-        $this->reflectionProperty = $reflectionProperty;
-        $this->annotation = $annotation;
+    public function __construct(
+        private $propertyName,
+        private ReflectionProperty $reflectionProperty,
+        Label $annotation
+    ) {
         $this->labelName = $annotation->name;
     }
 
@@ -78,9 +58,9 @@ final class LabeledPropertyMetadata
 
     /**
      * @param object $object
-     * @param bool   $value
+     * @param bool $value
      */
-    public function setLabel($object, $value)
+    public function setLabel(object $object, bool $value)
     {
         $this->reflectionProperty->setAccessible(true);
         $this->reflectionProperty->setValue($object, $value);
@@ -91,7 +71,7 @@ final class LabeledPropertyMetadata
      *
      * @return bool
      */
-    public function isLabelSet($object)
+    public function isLabelSet(object $object): bool
     {
         $this->reflectionProperty->setAccessible(true);
         $v = $this->reflectionProperty->getValue($object);

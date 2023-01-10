@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -11,77 +13,54 @@
 
 namespace GraphAware\Neo4j\OGM\Persisters;
 
-use GraphAware\Common\Cypher\Statement;
+use Laudis\Neo4j\Databags\Statement;
 use GraphAware\Neo4j\OGM\EntityManager;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
-use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
 use GraphAware\Neo4j\OGM\Util\DirectionUtils;
 
 class BasicEntityPersister
 {
-    private $_className;
+    protected string $paramStyle;
 
-    private $_classMetadata;
-
-    private $_em;
-
-    public function __construct($className, NodeEntityMetadata $classMetadata, EntityManager $em)
-    {
-        $this->_className = $className;
-        $this->_classMetadata = $classMetadata;
-        $this->_em = $em;
+    public function __construct(
+        protected string $className,
+        protected NodeEntityMetadata $classMetadata,
+        protected EntityManager $entityManager
+    ) {
+        $this->paramStyle = $this->entityManager->isV4() ? '$%s' : '{%s}';
     }
 
-    /**
-     * @param array      $criteria
-     * @param array|null $orderBy
-     *
-     * @return object[]|array|null
-     */
-    public function load(array $criteria, array $orderBy = null)
+    public function load(array $criteria, array $orderBy = null): ?object
     {
         $stmt = $this->getMatchCypher($criteria, $orderBy);
-        $result = $this->_em->getDatabaseDriver()->run($stmt->text(), $stmt->parameters());
+        $result = $this->entityManager->getDatabaseDriver()->run($stmt->getText(), $stmt->getParameters());
 
-        if ($result->size() > 1) {
-            throw new \LogicException(sprintf('Expected only 1 record, got %d', $result->size()));
+        if ($result->count() > 1) {
+            throw new \LogicException(sprintf('Expected only 1 record, got %d', $result->count()));
         }
 
-        $hydrator = $this->_em->getEntityHydrator($this->_className);
+        $hydrator = $this->entityManager->getEntityHydrator($this->className);
         $entities = $hydrator->hydrateAll($result);
 
         return count($entities) === 1 ? $entities[0] : null;
     }
 
-    /**
-     * @param $id
-     *
-     * @return object|null
-     */
-    public function loadOneById($id)
+    public function loadOneById($id): ?object
     {
         $stmt = $this->getMatchOneByIdCypher($id);
-        $result = $this->_em->getDatabaseDriver()->run($stmt->text(), $stmt->parameters());
-        $hydrator = $this->_em->getEntityHydrator($this->_className);
+        $result = $this->entityManager->getDatabaseDriver()->run($stmt->getText(), $stmt->getParameters());
+        $hydrator = $this->entityManager->getEntityHydrator($this->className);
         $entities = $hydrator->hydrateAll($result);
 
         return count($entities) === 1 ? $entities[0] : null;
     }
 
-    /**
-     * @param array      $criteria
-     * @param array|null $orderBy
-     * @param int|null   $limit
-     * @param int|null   $offset
-     *
-     * @return array|object[]
-     */
-    public function loadAll(array $criteria = [], array $orderBy = null, $limit = null, $offset = null)
+    public function loadAll(array $criteria = [], array $orderBy = null, int $limit = null, int $offset = null): array
     {
         $stmt = $this->getMatchCypher($criteria, $orderBy, $limit, $offset);
-        $result = $this->_em->getDatabaseDriver()->run($stmt->text(), $stmt->parameters());
+        $result = $this->entityManager->getDatabaseDriver()->run($stmt->getText(), $stmt->getParameters());
 
-        $hydrator = $this->_em->getEntityHydrator($this->_className);
+        $hydrator = $this->entityManager->getEntityHydrator($this->className);
 
         return $hydrator->hydrateAll($result);
     }
@@ -89,8 +68,8 @@ class BasicEntityPersister
     public function getSimpleRelationship($alias, $sourceEntity)
     {
         $stmt = $this->getSimpleRelationshipStatement($alias, $sourceEntity);
-        $result = $this->_em->getDatabaseDriver()->run($stmt->text(), $stmt->parameters());
-        $hydrator = $this->_em->getEntityHydrator($this->_className);
+        $result = $this->entityManager->getDatabaseDriver()->run($stmt->getText(), $stmt->getParameters());
+        $hydrator = $this->entityManager->getEntityHydrator($this->className);
 
         $hydrator->hydrateSimpleRelationship($alias, $result, $sourceEntity);
     }
@@ -98,8 +77,8 @@ class BasicEntityPersister
     public function getSimpleRelationshipCollection($alias, $sourceEntity)
     {
         $stmt = $this->getSimpleRelationshipCollectionStatement($alias, $sourceEntity);
-        $result = $this->_em->getDatabaseDriver()->run($stmt->text(), $stmt->parameters());
-        $hydrator = $this->_em->getEntityHydrator($this->_className);
+        $result = $this->entityManager->getDatabaseDriver()->run($stmt->getText(), $stmt->getParameters());
+        $hydrator = $this->entityManager->getEntityHydrator($this->className);
 
         $hydrator->hydrateSimpleRelationshipCollection($alias, $result, $sourceEntity);
     }
@@ -107,11 +86,11 @@ class BasicEntityPersister
     public function getRelationshipEntity($alias, $sourceEntity)
     {
         $stmt = $this->getRelationshipEntityStatement($alias, $sourceEntity);
-        $result = $this->_em->getDatabaseDriver()->run($stmt->text(), $stmt->parameters());
-        if ($result->size() > 1) {
-            throw new \RuntimeException(sprintf('Expected 1 result, got %d', $result->size()));
+        $result = $this->entityManager->getDatabaseDriver()->run($stmt->getText(), $stmt->getParameters());
+        if ($result->count() > 1) {
+            throw new \RuntimeException(sprintf('Expected 1 result, got %d', $result->count()));
         }
-        $hydrator = $this->_em->getEntityHydrator($this->_className);
+        $hydrator = $this->entityManager->getEntityHydrator($this->className);
 
         $hydrator->hydrateRelationshipEntity($alias, $result, $sourceEntity);
     }
@@ -119,8 +98,8 @@ class BasicEntityPersister
     public function getRelationshipEntityCollection($alias, $sourceEntity)
     {
         $stmt = $this->getRelationshipEntityStatement($alias, $sourceEntity);
-        $result = $this->_em->getDatabaseDriver()->run($stmt->text(), $stmt->parameters());
-        $hydrator = $this->_em->getEntityHydrator($this->_className);
+        $result = $this->entityManager->getDatabaseDriver()->run($stmt->getText(), $stmt->getParameters());
+        $hydrator = $this->entityManager->getEntityHydrator($this->className);
 
         $hydrator->hydrateRelationshipEntity($alias, $result, $sourceEntity);
     }
@@ -128,37 +107,31 @@ class BasicEntityPersister
     public function getCountForRelationship($alias, $sourceEntity)
     {
         $stmt = $this->getDegreeStatement($alias, $sourceEntity);
-        $result = $this->_em->getDatabaseDriver()->run($stmt->text(), $stmt->parameters());
+        $result = $this->entityManager->getDatabaseDriver()->run($stmt->getText(), $stmt->getParameters());
 
-        return $result->firstRecord()->get($alias);
+        return $result->first()->get($alias);
     }
 
-    /**
-     * @param $criteria
-     * @param null|array $orderBy
-     * @param null|int   $limit
-     * @param null|int   $offset
-     *
-     * @return Statement
-     */
-    public function getMatchCypher(array $criteria = [], $orderBy = null, $limit = null, $offset = null)
-    {
-        $identifier = $this->_classMetadata->getEntityAlias();
-        $classLabel = $this->_classMetadata->getLabel();
-        $cypher = 'MATCH ('.$identifier.':'.$classLabel.') ';
+    public function getMatchCypher(
+        array $criteria = [],
+        array $orderBy = null,
+        int $limit = null,
+        int $offset = null
+    ): Statement {
+        $identifier = $this->classMetadata->getEntityAlias();
+        $cypher = sprintf('MATCH (%s:%s) ', $identifier, $this->classMetadata->getLabel());
 
         $filter_cursor = 0;
         $params = [];
-
         foreach ($criteria as $key => $criterion) {
             $key = (string) $key;
             $clause = $filter_cursor === 0 ? 'WHERE' : 'AND';
-            $cypher .= sprintf('%s %s.%s = {%s} ', $clause, $identifier, $key, $key);
+            $cypher .= sprintf("%s %s.%s = {$this->paramStyle} ", $clause, $identifier, $key, $key);
             $params[$key] = $criterion;
             ++$filter_cursor;
         }
 
-        $cypher .= 'RETURN '.$identifier;
+        $cypher .= sprintf('RETURN %s', $identifier);
 
         if (is_array($orderBy) && count($orderBy) > 0) {
             $cypher .= PHP_EOL;
@@ -183,76 +156,54 @@ class BasicEntityPersister
         return Statement::create($cypher, $params);
     }
 
-    private function getSimpleRelationshipStatement($alias, $sourceEntity)
+    private function getSimpleRelationshipStatement($alias, $sourceEntity): Statement
     {
-        $relationshipMeta = $this->_classMetadata->getRelationship($alias);
-        $relAlias = $relationshipMeta->getAlias();
-        $targetMetadata = $this->_em->getClassMetadataFor($relationshipMeta->getTargetEntity());
-        $targetClassLabel = $targetMetadata->getLabel();
-        $targetAlias = $targetMetadata->getEntityAlias();
-        $sourceEntityId = $this->_classMetadata->getIdValue($sourceEntity);
-        $relationshipType = $relationshipMeta->getType();
-
-        $isIncoming = $relationshipMeta->getDirection() === DirectionUtils::INCOMING ? '<' : '';
-        $isOutgoing = $relationshipMeta->getDirection() === DirectionUtils::OUTGOING ? '>' : '';
-
-        $relPattern = sprintf('%s-[%s:`%s`]-%s', $isIncoming, $relAlias, $relationshipType, $isOutgoing);
-
-        $cypher = 'MATCH (n) WHERE id(n) = {id} ';
-        $cypher .= 'MATCH (n)'.$relPattern.'('.$targetAlias.($targetClassLabel != null ? ':' . $targetClassLabel : '').') ';
-        $cypher .= 'RETURN '.$targetAlias;
+        [$cypher, $targetAlias, $relationshipMeta, $sourceEntityId] =
+            $this->prepareDateForStatement($alias, $sourceEntity);
+        $cypher .= 'RETURN ' . $targetAlias;
 
         $params = ['id' => (int) $sourceEntityId];
 
         return Statement::create($cypher, $params);
     }
 
-    private function getRelationshipEntityStatement($alias, $sourceEntity)
+    private function getRelationshipEntityStatement($alias, $sourceEntity): Statement
     {
-        $relationshipMeta = $this->_classMetadata->getRelationship($alias);
+        $relationshipMeta = $this->classMetadata->getRelationship($alias);
         $relAlias = $relationshipMeta->getAlias();
-        $targetMetadata = $this->_em->getClassMetadataFor($relationshipMeta->getRelationshipEntityClass());
+        $targetMetadata = $this->entityManager->getClassMetadataFor($relationshipMeta->getRelationshipEntityClass());
         $targetAlias = $targetMetadata->getEntityAlias();
-        $sourceEntityId = $this->_classMetadata->getIdValue($sourceEntity);
+        $sourceEntityId = $this->classMetadata->getIdValue($sourceEntity);
         $relationshipType = $relationshipMeta->getType();
 
         $isIncoming = $relationshipMeta->getDirection() === DirectionUtils::INCOMING ? '<' : '';
         $isOutgoing = $relationshipMeta->getDirection() === DirectionUtils::OUTGOING ? '>' : '';
 
-        $target = $isIncoming ? 'startNode' : 'endNode';
-
-        $relPattern = sprintf('%s-[%s:`%s`]-%s', $isIncoming, $relAlias, $relationshipType, $isOutgoing);
-
-        $cypher = 'MATCH (n) WHERE id(n) = {id} ';
-        $cypher .= 'MATCH (n)'.$relPattern.'('.$targetAlias.') ';
-        $cypher .= 'RETURN {target: '.$target.'('.$relAlias.'), re: '.$relAlias.'} AS '.$relAlias;
+        $cypher = sprintf(
+            "MATCH (n) WHERE id(n) = {$this->paramStyle} MATCH (n)%s(%s) RETURN {target: %s(%s), re: %s} AS %s",
+            'id',
+            sprintf('%s-[%s:`%s`]-%s', $isIncoming, $relAlias, $relationshipType, $isOutgoing),
+            $targetAlias,
+            $isIncoming ? 'startNode' : 'endNode',
+            $relAlias,
+            $relAlias,
+            $relAlias
+        );
 
         $params = ['id' => $sourceEntityId];
 
         return Statement::create($cypher, $params);
     }
 
-    private function getSimpleRelationshipCollectionStatement($alias, $sourceEntity)
+    private function getSimpleRelationshipCollectionStatement($alias, $sourceEntity): Statement
     {
-        $relationshipMeta = $this->_classMetadata->getRelationship($alias);
-        $relAlias = $relationshipMeta->getAlias();
-        $targetMetadata = $this->_em->getClassMetadataFor($relationshipMeta->getTargetEntity());
-        $targetClassLabel = $targetMetadata->getLabel();
-        $targetAlias = $targetMetadata->getEntityAlias();
-        $sourceEntityId = $this->_classMetadata->getIdValue($sourceEntity);
-        $relationshipType = $relationshipMeta->getType();
-
-        $isIncoming = $relationshipMeta->getDirection() === DirectionUtils::INCOMING ? '<' : '';
-        $isOutgoing = $relationshipMeta->getDirection() === DirectionUtils::OUTGOING ? '>' : '';
-
-        $relPattern = sprintf('%s-[%s:`%s`]-%s', $isIncoming, $relAlias, $relationshipType, $isOutgoing);
-
-        $cypher = 'MATCH (n) WHERE id(n) = {id} ';
-        $cypher .= 'MATCH (n)'.$relPattern.'('.$targetAlias.($targetClassLabel != null ? ':' . $targetClassLabel : '').') ';
-        $cypher .= 'RETURN '.$targetAlias.' AS '.$targetAlias.' ';
+        [$cypher, $targetAlias, $relationshipMeta, $sourceEntityId] =
+            $this->prepareDateForStatement($alias, $sourceEntity);
+        $cypher .= 'RETURN ' . $targetAlias . ' AS ' . $targetAlias . ' ';
 
         if ($relationshipMeta->hasOrderBy()) {
-            $cypher .= 'ORDER BY '.$targetAlias.'.'.$relationshipMeta->getOrderByProperty().' '.$relationshipMeta->getOrder();
+            $cypher .= 'ORDER BY ' . $targetAlias . '.' . $relationshipMeta->getOrderByProperty() . ' '
+                . $relationshipMeta->getOrder();
         }
 
         $params = ['id' => $sourceEntityId];
@@ -260,28 +211,34 @@ class BasicEntityPersister
         return Statement::create($cypher, $params);
     }
 
-    private function getMatchOneByIdCypher($id)
+    private function getMatchOneByIdCypher($id): Statement
     {
-        $identifier = $this->_classMetadata->getEntityAlias();
-        $label = $this->_classMetadata->getLabel();
-        $cypher = 'MATCH ('.$identifier.':`'.$label.'`) WHERE id('.$identifier.') = {id} RETURN '.$identifier;
+        $identifier = $this->classMetadata->getEntityAlias();
+        $cypher = sprintf(
+            "MATCH (%s:`%s`)  WHERE id(%s) = {$this->paramStyle} RETURN %s",
+            $identifier,
+            $this->classMetadata->getLabel(),
+            $identifier,
+            'id',
+            $identifier
+        );
+
         $params = ['id' => (int) $id];
 
         return Statement::create($cypher, $params);
     }
 
-    private function getDegreeStatement($alias, $sourceEntity)
+    private function getDegreeStatement($alias, $sourceEntity): Statement
     {
-        $relationshipMeta = $this->_classMetadata->getRelationship($alias);
-        $relAlias = $relationshipMeta->getAlias();
+        $relationshipMeta = $this->classMetadata->getRelationship($alias);
         $targetClassLabel = '';
         if ($relationshipMeta->isRelationshipEntity() === false && $relationshipMeta->isTargetEntity() === true) {
-            $targetMetadata = $this->_em->getClassMetadataFor($relationshipMeta->getTargetEntity());
+            $targetMetadata = $this->entityManager->getClassMetadataFor($relationshipMeta->getTargetEntity());
             if ($targetMetadata->getLabel() != null) {
-                $targetClassLabel = ':'.$targetMetadata->getLabel();
+                $targetClassLabel = ':' . $targetMetadata->getLabel();
             }
         }
-        $sourceEntityId = $this->_classMetadata->getIdValue($sourceEntity);
+        $sourceEntityId = $this->classMetadata->getIdValue($sourceEntity);
         $relationshipType = $relationshipMeta->getType();
 
         $isIncoming = $relationshipMeta->getDirection() === DirectionUtils::INCOMING ? '<' : '';
@@ -289,11 +246,38 @@ class BasicEntityPersister
 
         $relPattern = sprintf('%s-[:`%s`]-%s', $isIncoming, $relationshipType, $isOutgoing);
 
-        $cypher  = 'MATCH (n) WHERE id(n) = {id} ';
-        $cypher .= 'RETURN size((n)'.$relPattern.'('.$targetClassLabel.')) ';
-        $cypher .= 'AS '.$alias;
+        $cypher  = sprintf("MATCH (n) WHERE id(n) = {$this->paramStyle} ", 'id');
+        $cypher .= 'RETURN size((n)' . $relPattern . '(' . $targetClassLabel . ')) ';
+        $cypher .= 'AS ' . $alias;
 
         return Statement::create($cypher, ['id' => $sourceEntityId]);
+    }
 
+    private function prepareDateForStatement($alias, $sourceEntity): array
+    {
+        $relationshipMeta = $this->classMetadata->getRelationship($alias);
+        $targetMetadata = $this->entityManager->getClassMetadataFor($relationshipMeta->getTargetEntity());
+        $targetAlias = $targetMetadata->getEntityAlias();
+
+        $cypher = sprintf(
+            "MATCH (n) WHERE id(n) = {$this->paramStyle} MATCH (n)%s(%s:%s) ",
+            'id',
+            sprintf(
+                '%s-[%s:`%s`]-%s',
+                $relationshipMeta->getDirection() === DirectionUtils::INCOMING ? '<' : '',
+                $relationshipMeta->getAlias(),
+                $relationshipMeta->getType(),
+                $relationshipMeta->getDirection() === DirectionUtils::OUTGOING ? '>' : ''
+            ),
+            $targetAlias,
+            $targetMetadata->getLabel()
+        );
+
+        return [
+            $cypher,
+            $targetAlias,
+            $relationshipMeta,
+            $this->classMetadata->getIdValue($sourceEntity)
+        ];
     }
 }

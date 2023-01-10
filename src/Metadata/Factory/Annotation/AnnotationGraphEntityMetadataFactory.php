@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -29,51 +31,32 @@ use GraphAware\Neo4j\OGM\Metadata\Factory\GraphEntityMetadataFactoryInterface;
 use GraphAware\Neo4j\OGM\Metadata\LabeledPropertyMetadata;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\QueryResultMapper;
+use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
 use GraphAware\Neo4j\OGM\Metadata\ResultField;
+use ReflectionClass;
 
 class AnnotationGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInterface
 {
-    /**
-     * @var Reader
-     */
-    private $reader;
+    private NodeAnnotationMetadataFactory $nodeAnnotationMetadataFactory;
 
-    /**
-     * @var NodeAnnotationMetadataFactory
-     */
-    private $nodeAnnotationMetadataFactory;
+    private PropertyAnnotationMetadataFactory $propertyAnnotationMetadataFactory;
 
-    /**
-     * @var PropertyAnnotationMetadataFactory
-     */
-    private $propertyAnnotationMetadataFactory;
+    private IdAnnotationMetadataFactory $IdAnnotationMetadataFactory;
 
-    /**
-     * @var IdAnnotationMetadataFactory
-     */
-    private $IdAnnotationMetadataFactory;
+    private RelationshipEntityMetadataFactory $relationshipEntityMetadataFactory;
 
-    /**
-     * @var RelationshipEntityMetadataFactory
-     */
-    private $relationshipEntityMetadataFactory;
-
-    /**
-     * @param Reader $reader
-     */
-    public function __construct(Reader $reader)
+    public function __construct(private Reader $reader)
     {
-        $this->reader = $reader;
         $this->nodeAnnotationMetadataFactory = new NodeAnnotationMetadataFactory($reader);
         $this->propertyAnnotationMetadataFactory = new PropertyAnnotationMetadataFactory($reader);
         $this->IdAnnotationMetadataFactory = new IdAnnotationMetadataFactory($reader);
         $this->relationshipEntityMetadataFactory = new RelationshipEntityMetadataFactory($reader);
     }
 
-    public function create($className)
+    public function create($className): RelationshipEntityMetadata|NodeEntityMetadata
     {
-        $reflectionClass = new \ReflectionClass($className);
+        $reflectionClass = new ReflectionClass($className);
         $entityIdMetadata = null;
         $propertiesMetadata = [];
         $relationshipsMetadata = [];
@@ -88,7 +71,7 @@ class AnnotationGraphEntityMetadataFactory implements GraphEntityMetadataFactory
                 } else {
                     $idA = $this->IdAnnotationMetadataFactory->create($className, $reflectionProperty);
                     if (null !== $idA) {
-                        $entityIdMetadata = new EntityIdMetadata($reflectionProperty->getName(), $reflectionProperty, $idA);
+                        $entityIdMetadata = new EntityIdMetadata($reflectionProperty->getName(), $reflectionProperty);
                     }
                 }
                 foreach ($this->reader->getPropertyAnnotations($reflectionProperty) as $annot) {
@@ -121,9 +104,9 @@ class AnnotationGraphEntityMetadataFactory implements GraphEntityMetadataFactory
         throw new MappingException(sprintf('The class "%s" is not a valid OGM entity', $className));
     }
 
-    public function supports($className)
+    public function supports($className): bool
     {
-        $reflectionClass = new \ReflectionClass($className);
+        $reflectionClass = new ReflectionClass($className);
 
         if (
             $this->reader->getClassAnnotation($reflectionClass, Node::class) === null
@@ -135,9 +118,9 @@ class AnnotationGraphEntityMetadataFactory implements GraphEntityMetadataFactory
         return true;
     }
 
-    public function supportsQueryResult($className)
+    public function supportsQueryResult($className): bool
     {
-        $reflClass = new \ReflectionClass($className);
+        $reflClass = new ReflectionClass($className);
         $classAnnotations = $this->reader->getClassAnnotations($reflClass);
 
         foreach ($classAnnotations as $classAnnotation) {
@@ -149,9 +132,9 @@ class AnnotationGraphEntityMetadataFactory implements GraphEntityMetadataFactory
         return false;
     }
 
-    public function createQueryResultMapper($className)
+    public function createQueryResultMapper($className): QueryResultMapper
     {
-        $reflClass = new \ReflectionClass($className);
+        $reflClass = new ReflectionClass($className);
         $queryResultMapper = new QueryResultMapper($className);
 
         foreach ($reflClass->getProperties() as $property) {

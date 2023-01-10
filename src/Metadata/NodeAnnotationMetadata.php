@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -13,38 +15,18 @@ namespace GraphAware\Neo4j\OGM\Metadata;
 
 final class NodeAnnotationMetadata
 {
-    /**
-     * @var string
-     */
-    private $label;
-
-    /**
-     * @var string
-     */
-    private $customRepository;
-
-    /**
-     * @param string      $label
-     * @param string|null $repository
-     */
-    public function __construct($label, $repository)
-    {
-        $this->label = $label;
-        $this->customRepository = $repository;
+    public function __construct(
+        private string $label,
+        private ?string $customRepository = null
+    ) {
     }
 
-    /**
-     * @return string
-     */
-    public function getLabel()
+    public function getLabel(): string
     {
         return $this->label;
     }
 
-    /**
-     * @return string
-     */
-    public function getCustomRepository()
+    public function getCustomRepository(): ?string
     {
         return $this->customRepository;
     }

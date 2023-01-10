@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -17,13 +19,7 @@ namespace GraphAware\Neo4j\OGM\Annotations;
  */
 final class Node implements Entity
 {
-    /**
-     * @var string
-     */
-    public $label;
+    public string $label;
 
-    /**
-     * @var string
-     */
     public $repository;
 }

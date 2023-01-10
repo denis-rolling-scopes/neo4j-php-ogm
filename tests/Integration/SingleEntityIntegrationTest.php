@@ -25,9 +25,9 @@ class SingleEntityIntegrationTest extends IntegrationTestCase
         $this->em->persist($user);
         $this->em->flush();
 
-        $result = $this->client->run('MATCH (n:User {login : {login} }) RETURN n', ['login' => 'jexp']);
-        $this->assertSame(1, $result->size());
-        $this->assertSame('jexp', $result->firstRecord()->get('n')->value('login'));
+        $result = $this->client->run('MATCH (n:User {login : $login }) RETURN n', ['login' => 'jexp']);
+        $this->assertSame(1, $result->count());
+        $this->assertSame('jexp', $result->first()->get('n')->getProperty('login'));
     }
 
     public function testSingleEntityFindAll()
@@ -59,13 +59,13 @@ class SingleEntityIntegrationTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (n:User) WHERE n.login = "jexp2" RETURN n');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
     }
 
     public function testFindOneByIdShouldNotReturnIfNodeDoesntMatchLabel()
     {
         $this->clearDb();
-        $id = $this->client->run('CREATE (n:NonUser {login:"me"}) RETURN id(n) AS id')->firstRecord()->get('id');
+        $id = $this->client->run('CREATE (n:NonUser {login:"me"}) RETURN id(n) AS id')->first()->get('id');
 
         $user = $this->em->getRepository(User::class)->findOneById($id);
         $this->assertNull($user);
@@ -74,7 +74,7 @@ class SingleEntityIntegrationTest extends IntegrationTestCase
     public function testFindOneByIdReturnEntityWhenLabelMatch()
     {
         $this->clearDb();
-        $id = $this->client->run('CREATE (n:User {login:"me"}) RETURN id(n) AS id')->firstRecord()->get('id');
+        $id = $this->client->run('CREATE (n:User {login:"me"}) RETURN id(n) AS id')->first()->get('id');
 
         $user = $this->em->getRepository(User::class)->findOneById($id);
         $this->assertInstanceOf(User::class, $user);

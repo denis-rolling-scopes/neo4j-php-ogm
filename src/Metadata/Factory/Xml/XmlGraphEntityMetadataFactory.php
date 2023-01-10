@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -11,27 +13,23 @@
 
 namespace GraphAware\Neo4j\OGM\Metadata\Factory\Xml;
 
-use Doctrine\Common\Persistence\Mapping\Driver\FileLocator;
+use Doctrine\Persistence\Mapping\Driver\FileLocator;
 use GraphAware\Neo4j\OGM\Exception\MappingException;
 use GraphAware\Neo4j\OGM\Metadata\Factory\GraphEntityMetadataFactoryInterface;
+use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
+use GraphAware\Neo4j\OGM\Metadata\QueryResultMapper;
+use GraphAware\Neo4j\OGM\Metadata\RelationshipEntityMetadata;
 
 class XmlGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInterface
 {
-    private $fileLocator;
-    private $nodeEntityMetadataFactory;
-    private $relationshipEntityMetadataFactory;
-
     public function __construct(
-        FileLocator $fileLocator,
-        NodeEntityMetadataFactory $nodeEntityMetadataFactory,
-        RelationshipEntityMetadataFactory $relationshipEntityMetadataFactory
+        private FileLocator $fileLocator,
+        private NodeEntityMetadataFactory $nodeEntityMetadataFactory,
+        private RelationshipEntityMetadataFactory $relationshipEntityMetadataFactory
     ) {
-        $this->fileLocator = $fileLocator;
-        $this->nodeEntityMetadataFactory = $nodeEntityMetadataFactory;
-        $this->relationshipEntityMetadataFactory = $relationshipEntityMetadataFactory;
     }
 
-    public function create($className)
+    public function create($className): RelationshipEntityMetadata|NodeEntityMetadata
     {
         $xml = $this->getXmlInstance($className);
 
@@ -42,41 +40,39 @@ class XmlGraphEntityMetadataFactory implements GraphEntityMetadataFactoryInterfa
         } elseif (isset($xml->relationship)) {
             $this->validateEntityClass($xml->relationship, $className);
 
-            return $this->relationshipEntityMetadataFactory->buildRelationshipEntityMetadata($xml->relationship, $className);
+            return $this->relationshipEntityMetadataFactory
+                ->buildRelationshipEntityMetadata($xml->relationship, $className);
         }
 
         throw new MappingException(sprintf('Invalid OGM XML configuration for class "%s"', $className));
     }
 
-    public function supports($className)
+    public function supports($className): bool
     {
         return $this->fileLocator->fileExists($className);
     }
 
-    public function createQueryResultMapper($className)
+    public function createQueryResultMapper($className): ?QueryResultMapper
     {
         // TODO: Implement createQueryResultMapper() method.
+        return null;
     }
 
-    public function supportsQueryResult($className)
+    public function supportsQueryResult($className): bool
     {
         return false;
     }
 
-    private function getXmlInstance($className)
+    private function getXmlInstance($className): \SimpleXMLElement
     {
         $filename = $this->fileLocator->findMappingFile($className);
 
         return new \SimpleXMLElement(file_get_contents($filename));
     }
 
-    /**
-     * @param \SimpleXMLElement $element
-     * @param string            $className
-     */
-    private function validateEntityClass(\SimpleXMLElement $element, $className)
+    private function validateEntityClass(\SimpleXMLElement $element, string $className)
     {
-        if (!isset($element['entity']) || (string) $element['entity'] !== $className) {
+        if (!isset($element['entity']) || (string)$element['entity'] !== $className) {
             throw new MappingException(
                 sprintf('Class "%s" OGM XML configuration has invalid or missing "entity" element', $className)
             );

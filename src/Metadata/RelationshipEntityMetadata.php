@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -12,41 +14,33 @@
 namespace GraphAware\Neo4j\OGM\Metadata;
 
 use GraphAware\Neo4j\OGM\Annotations\RelationshipEntity;
+use ReflectionClass;
+use ReflectionProperty;
 
 final class RelationshipEntityMetadata extends GraphEntityMetadata
 {
-    /**
-     * @var string
-     */
-    private $type;
+    private string $type;
 
-    private $relationshipEntityAnnotation;
+    private string $startNodeEntityMetadata;
 
-    private $startNodeEntityMetadata;
+    private ReflectionProperty $startNodeReflectionProperty;
 
-    private $startNodeReflectionProperty;
+    private ReflectionProperty $endNodeReflectionProperty;
 
-    private $endNodeReflectionProperty;
+    private string $endNodeEntityMetadata;
 
-    private $endNodeEntityMetadata;
-
-    /**
-     * RelationshipEntityMetadata constructor.
-     *
-     * @param string                                               $class
-     * @param \ReflectionClass                                     $reflectionClass
-     * @param \GraphAware\Neo4j\OGM\Annotations\RelationshipEntity $annotation
-     * @param \GraphAware\Neo4j\OGM\Metadata\EntityIdMetadata      $entityIdMetadata
-     * @param string                                               $startNodeClass
-     * @param string                                               $endNodeClass
-     * @param array                                                $entityPropertiesMetadata
-     * @param mixed                                                $startNodeKey
-     * @param mixed                                                $endNodeKey
-     */
-    public function __construct($class, \ReflectionClass $reflectionClass, RelationshipEntity $annotation, EntityIdMetadata $entityIdMetadata, $startNodeClass, $startNodeKey, $endNodeClass, $endNodeKey, array $entityPropertiesMetadata)
-    {
+    public function __construct(
+        $class,
+        ReflectionClass $reflectionClass,
+        RelationshipEntity $annotation,
+        EntityIdMetadata $entityIdMetadata,
+        string $startNodeClass,
+        mixed $startNodeKey,
+        string $endNodeClass,
+        mixed $endNodeKey,
+        array $entityPropertiesMetadata
+    ) {
         parent::__construct($entityIdMetadata, $class, $reflectionClass, $entityPropertiesMetadata);
-        $this->relationshipEntityAnnotation = $annotation;
         $this->startNodeEntityMetadata = $startNodeClass;
         $this->endNodeEntityMetadata = $endNodeClass;
         $this->type = $annotation->type;
@@ -54,33 +48,27 @@ final class RelationshipEntityMetadata extends GraphEntityMetadata
         $this->endNodeReflectionProperty = $this->reflectionClass->getProperty($endNodeKey);
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function getStartNode()
+    public function getStartNode(): string
     {
         return $this->startNodeEntityMetadata;
     }
 
-    public function getEndNode()
+    public function getEndNode(): string
     {
         return $this->endNodeEntityMetadata;
     }
 
-    /**
-     * @return string
-     */
-    public function getStartNodePropertyName()
+    public function getStartNodePropertyName(): string
     {
         return $this->startNodeReflectionProperty->getName();
     }
 
-    public function setStartNodeProperty($object, $value)
+    public function setStartNodeProperty($object, $value): void
     {
         $this->startNodeReflectionProperty->setAccessible(true);
         $this->startNodeReflectionProperty->setValue($object, $value);
@@ -93,49 +81,49 @@ final class RelationshipEntityMetadata extends GraphEntityMetadata
         return $this->startNodeReflectionProperty->getValue($object);
     }
 
-    public function getEndNodePropertyName()
+    public function getEndNodePropertyName(): string
     {
         return $this->endNodeReflectionProperty->getName();
     }
 
-    public function setEndNodeProperty($object, $value)
+    public function setEndNodeProperty($object, $value): void
     {
         $this->endNodeReflectionProperty->setAccessible(true);
         $this->endNodeReflectionProperty->setValue($object, $value);
     }
 
-    public function getEndNodeProperty($object, $value)
+    public function getEndNodeProperty($object): mixed
     {
         $this->endNodeReflectionProperty->setAccessible(true);
 
         return $this->endNodeReflectionProperty->getValue($object);
     }
 
-    public function getEndNodeValue($object)
+    public function getEndNodeValue($object): mixed
     {
         $this->endNodeReflectionProperty->setAccessible(true);
 
         return $this->endNodeReflectionProperty->getValue($object);
     }
 
-    public function hasAssociation($fieldName)
+    public function hasAssociation($fieldName): bool
     {
         return $fieldName === $this->startNodeReflectionProperty->getName()
         || $fieldName === $this->endNodeReflectionProperty->getName();
     }
 
-    public function isSingleValuedAssociation($fieldName)
+    public function isSingleValuedAssociation($fieldName): bool
     {
         return $fieldName === $this->startNodeReflectionProperty->getName()
             || $fieldName === $this->endNodeReflectionProperty->getName();
     }
 
-    public function isCollectionValuedAssociation($fieldName)
+    public function isCollectionValuedAssociation($fieldName): bool
     {
         return false;
     }
 
-    public function getAssociationNames()
+    public function getAssociationNames(): array
     {
         return [
             $this->startNodeReflectionProperty->getName(),
@@ -143,7 +131,7 @@ final class RelationshipEntityMetadata extends GraphEntityMetadata
         ];
     }
 
-    public function getAssociationTargetClass($assocName)
+    public function getAssociationTargetClass($assocName): ?string
     {
         if ($this->startNodeReflectionProperty->getName() === $assocName) {
             return $this->startNodeEntityMetadata;
@@ -156,7 +144,7 @@ final class RelationshipEntityMetadata extends GraphEntityMetadata
         return null;
     }
 
-    public function getOtherClassNameForOwningClass($class)
+    public function getOtherClassNameForOwningClass($class): string
     {
         if ($this->startNodeEntityMetadata === $class) {
             return $this->endNodeEntityMetadata;
@@ -165,7 +153,7 @@ final class RelationshipEntityMetadata extends GraphEntityMetadata
         return $this->startNodeEntityMetadata;
     }
 
-    public function getInversedSide($name)
+    public function getInversedSide($name): ReflectionProperty
     {
         if ($this->startNodeReflectionProperty->getName() === $name) {
             return $this->endNodeReflectionProperty;
@@ -174,23 +162,23 @@ final class RelationshipEntityMetadata extends GraphEntityMetadata
         return $this->startNodeReflectionProperty;
     }
 
-    public function getStartNodeClass()
+    public function getStartNodeClass(): string
     {
         return $this->startNodeEntityMetadata;
     }
 
-    public function getEndNodeClass()
+    public function getEndNodeClass(): string
     {
         return $this->endNodeEntityMetadata;
     }
 
-    public function isAssociationInverseSide($assocName)
+    public function isAssociationInverseSide($assocName): bool
     {
         // Not implemented
         return false;
     }
 
-    public function getAssociationMappedByTargetField($assocName)
+    public function getAssociationMappedByTargetField($assocName): ?string
     {
         // TODO: Implement getAssociationMappedByTargetField() method.
 

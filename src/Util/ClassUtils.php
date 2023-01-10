@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -13,13 +15,7 @@ namespace GraphAware\Neo4j\OGM\Util;
 
 class ClassUtils
 {
-    /**
-     * @param string $class
-     * @param string $pointOfView
-     *
-     * @return string
-     */
-    public static function getFullClassName($class, $pointOfView)
+    public static function getFullClassName(string $class, string $pointOfView): string
     {
         $expl = explode('\\', $class);
         if (1 === count($expl)) {

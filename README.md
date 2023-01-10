@@ -8,14 +8,14 @@
 [![Total Downloads](https://poser.pugx.org/autoprotect-group/neo4j-php-ogm/downloads)](https://packagist.org/packages/autoprotect-group/neo4j-php-ogm)
 [![License](https://poser.pugx.org/autoprotect-group/neo4j-php-ogm/license)](https://packagist.org/packages/autoprotect-group/neo4j-php-ogm)
 
-**Current Release** : `1.1`
+**Current Release** : `^2.0`
 
 ## Installation
 
 Install with composer
 
 ```cli
-composer require autoprotect-group/neo4j-php-ogm:^1.1
+composer require autoprotect-group/neo4j-php-ogm
 ```
 
 ## Documentation
@@ -28,7 +28,7 @@ Some parts from the [old documentation](docs/reference/01-intro.md) might be sti
 
 For questions, please open a new thread on [StackOverflow](https://stackoverflow.com) with the `graphaware`, `neo4j` and `neo4j-php-ogm` tags.
 
-For isses, please raise a Github issue in the repository.
+For issues, please raise a Github issue in the repository.
 
 ## License
 

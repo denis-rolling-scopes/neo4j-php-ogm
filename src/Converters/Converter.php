@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -13,22 +15,16 @@ namespace GraphAware\Neo4j\OGM\Converters;
 
 abstract class Converter
 {
-    const DATETIME = 'datetime';
+    private const DATETIME = 'datetime';
 
-    protected $propertyName;
-
-    private static $converterMap = [
+    private static array $converterMap = [
         self::DATETIME => DateTimeConverter::class,
     ];
 
-    private static $converterObjects = [];
+    private static array $converterObjects = [];
 
-    /**
-     * @param string $propertyName
-     */
-    final private function __construct($propertyName)
+    final private function __construct(protected string $propertyName)
     {
-        $this->propertyName = $propertyName;
     }
 
     abstract public function getName();
@@ -37,16 +33,11 @@ abstract class Converter
 
     abstract public function toPHPValue(array $values, array $options);
 
-    /**
-     * @param string $name
-     *
-     * @return Converter
-     */
-    public static function getConverter($name, $propertyName)
+    public static function getConverter(string $name, string $propertyName): Converter
     {
-        $objectK = $name.$propertyName;
-        if ( ! isset(self::$converterObjects[$objectK])) {
-            if ( ! isset(self::$converterMap[$name])) {
+        $objectK = $name . $propertyName;
+        if (! isset(self::$converterObjects[$objectK])) {
+            if (! isset(self::$converterMap[$name])) {
                 throw new \InvalidArgumentException(sprintf('No converter named "%s" found', $name));
             }
 
@@ -56,28 +47,17 @@ abstract class Converter
         return self::$converterObjects[$objectK];
     }
 
-    /**
-     * @param string $name
-     * @param string $class
-     */
-    public static function addConverter($name, $class)
+    public static function addConverter(string $name, string $class): void
     {
-        if ( isset(self::$converterMap[$name])) {
+        if (isset(self::$converterMap[$name])) {
             throw new \InvalidArgumentException(sprintf('Converter with name "%s" already exist', $name));
         }
 
         self::$converterMap[$name] = $class;
     }
 
-    /**
-     * @param string $name
-     *
-     * @return bool
-     */
-    public static function hasConverter($name)
+    public static function hasConverter(string $name): bool
     {
         return isset(self::$converterMap[$name]);
     }
-
-
 }

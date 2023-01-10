@@ -23,7 +23,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\EntityWithSimpleRelationship\P
  */
 class EntityWithSimpleRelationshipTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();
@@ -36,7 +36,7 @@ class EntityWithSimpleRelationshipTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (n:Person) RETURN n');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
     }
 
     public function testPersonIsCreatedWithCar()
@@ -48,7 +48,7 @@ class EntityWithSimpleRelationshipTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (n:Person {name:"Mike"})-[:OWNS]->(c:Car {model:"Bugatti"}) RETURN n, c');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
     }
 
     public function testPersonWithCarCanBeUpdated()
@@ -63,7 +63,7 @@ class EntityWithSimpleRelationshipTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (n:Person {name:"Mike2"})-[:OWNS]->(c:Car {model:"Bugatti"}) RETURN n, c');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
     }
 
     public function testPersonWithCarCanBeLoaded()
@@ -75,7 +75,7 @@ class EntityWithSimpleRelationshipTest extends IntegrationTestCase
         $this->em->flush();
         $this->em->clear();
         $result = $this->client->run('MATCH (n:Person {name:"Mike"})-[:OWNS]->(c:Car {model:"Bugatti"}) RETURN n, c');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
 
         $entities = $this->em->getRepository(Person::class)->findAll();
         $this->assertCount(1, $entities);
@@ -109,7 +109,7 @@ class EntityWithSimpleRelationshipTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (n:Person)-[:OWNS]->(c:Car {model: "Maseratti"}) RETURN c');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
     }
 
     public function testPersonWithCarAndModelNumberIsPersisted()
@@ -123,7 +123,7 @@ class EntityWithSimpleRelationshipTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (n:Person {name:"Mike"})-[:OWNS]->(c:Car)-[:HAS_MODEL_NUMBER]->(m:ModelNumber {number:"vroom-123"}) RETURN n, c, m');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
     }
 
     public function testPersonWithCarAndModelNumberCanBeLoaded()
@@ -158,7 +158,7 @@ class EntityWithSimpleRelationshipTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (n:Person {name:"Mike"})-[:OWNS]->(c:Car {model:"Bugatti"}) RETURN n, c');
-        $this->assertSame(1, $result->size());
+        $this->assertSame(1, $result->count());
         //exit;
 
         $this->em->clear();
@@ -176,6 +176,6 @@ class EntityWithSimpleRelationshipTest extends IntegrationTestCase
         $this->em->flush();
 
         $result = $this->client->run('MATCH (n:Person {name:"Mike"})-[:OWNS]->(c:Car {model:"Bugatti"}) RETURN n, c');
-        $this->assertSame(0, $result->size());
+        $this->assertSame(0, $result->count());
     }
 }

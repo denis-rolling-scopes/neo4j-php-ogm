@@ -15,7 +15,7 @@ use GraphAware\Neo4j\OGM\Tests\Integration\Models\NodePropertyKeyMapping\Employe
 
 class NodePropertyKeyMappingTest extends IntegrationTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->clearDb();

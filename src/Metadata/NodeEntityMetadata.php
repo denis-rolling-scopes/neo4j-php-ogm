@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -12,48 +14,26 @@
 namespace GraphAware\Neo4j\OGM\Metadata;
 
 use GraphAware\Neo4j\OGM\Util\ClassUtils;
+use ReflectionClass;
 
 final class NodeEntityMetadata extends GraphEntityMetadata
 {
-    /**
-     * @var LabeledPropertyMetadata[]
-     */
-    protected $labeledPropertiesMetadata = [];
+    protected array $labeledPropertiesMetadata = [];
 
-    /**
-     * @var RelationshipMetadata[]
-     */
-    protected $relationships = [];
-    /**
-     * @var \GraphAware\Neo4j\OGM\Metadata\NodeAnnotationMetadata
-     */
-    private $nodeAnnotationMetadata;
+    protected array $relationships = [];
 
-    /**
-     * @var string
-     */
-    private $customRepository;
+    private ?string $customRepository;
 
-    /**
-     * NodeEntityMetadata constructor.
-     *
-     * @param string                                                $className
-     * @param \ReflectionClass                                      $reflectionClass
-     * @param \GraphAware\Neo4j\OGM\Metadata\NodeAnnotationMetadata $nodeAnnotationMetadata
-     * @param \GraphAware\Neo4j\OGM\Metadata\EntityIdMetadata       $entityIdMetadata
-     * @param array                                                 $entityPropertiesMetadata
-     * @param RelationshipMetadata[]                                $simpleRelationshipsMetadata
-     */
+
     public function __construct(
         $className,
-        \ReflectionClass $reflectionClass,
-        NodeAnnotationMetadata $nodeAnnotationMetadata,
+        ReflectionClass $reflectionClass,
+        private NodeAnnotationMetadata $nodeAnnotationMetadata,
         EntityIdMetadata $entityIdMetadata,
         array $entityPropertiesMetadata,
         array $simpleRelationshipsMetadata
     ) {
         parent::__construct($entityIdMetadata, $className, $reflectionClass, $entityPropertiesMetadata);
-        $this->nodeAnnotationMetadata = $nodeAnnotationMetadata;
         $this->customRepository = $this->nodeAnnotationMetadata->getCustomRepository();
         foreach ($entityPropertiesMetadata as $o) {
             if ($o instanceof LabeledPropertyMetadata) {
@@ -65,58 +45,37 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         }
     }
 
-    /**
-     * @return string
-     */
-    public function getLabel()
+    public function getLabel(): string
     {
         return $this->nodeAnnotationMetadata->getLabel();
     }
 
-    /**
-     * @param $key
-     *
-     * @return \GraphAware\Neo4j\OGM\Metadata\LabeledPropertyMetadata
-     */
-    public function getLabeledProperty($key)
+    public function getLabeledProperty($key): ?LabeledPropertyMetadata
     {
         if (array_key_exists($key, $this->labeledPropertiesMetadata)) {
             return $this->labeledPropertiesMetadata[$key];
         }
+        return null;
     }
 
-    /**
-     * @return \GraphAware\Neo4j\OGM\Metadata\LabeledPropertyMetadata[]
-     */
-    public function getLabeledProperties()
+    public function getLabeledProperties(): array
     {
         return $this->labeledPropertiesMetadata;
     }
 
-    /**
-     * @param $object
-     *
-     * @return LabeledPropertyMetadata[]
-     */
-    public function getLabeledPropertiesToBeSet($object)
+    public function getLabeledPropertiesToBeSet($object): array
     {
         return array_filter($this->getLabeledProperties(), function (LabeledPropertyMetadata $labeledPropertyMetadata) use ($object) {
             return true === $labeledPropertyMetadata->getValue($object);
         });
     }
 
-    /**
-     * @return bool
-     */
-    public function hasCustomRepository()
+    public function hasCustomRepository(): bool
     {
         return null !== $this->customRepository;
     }
 
-    /**
-     * @return string
-     */
-    public function getRepositoryClass()
+    public function getRepositoryClass(): string
     {
         if (null === $this->customRepository) {
             throw new \LogicException(sprintf('There is no custom repository for "%s"', $this->className));
@@ -125,10 +84,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return ClassUtils::getFullClassName($this->customRepository, $this->className);
     }
 
-    /**
-     * @return \GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata[]
-     */
-    public function getRelationships()
+    public function getRelationships(): array
     {
         return $this->relationships;
     }
@@ -139,7 +95,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
      *
      * @return RelationshipMetadata[]
      */
-    public function getNonLazyRelationships()
+    public function getNonLazyRelationships(): array
     {
         $rels = [];
         foreach ($this->relationships as $relationship) {
@@ -151,12 +107,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return $rels;
     }
 
-    /**
-     * @param mixed $andRelEntities
-     *
-     * @return RelationshipMetadata[]
-     */
-    public function getLazyRelationships($andRelEntities = false)
+    public function getLazyRelationships(mixed $andRelEntities = false): array
     {
         $rels = [];
         foreach ($this->relationships as $relationship) {
@@ -171,12 +122,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return $rels;
     }
 
-    /**
-     * @param bool $andRelationshipEntities
-     *
-     * @return RelationshipMetadata[]
-     */
-    public function getFetchRelationships($andRelationshipEntities = false)
+    public function getFetchRelationships(bool $andRelationshipEntities = false): array
     {
         $rels = [];
         foreach ($this->relationships as $relationship) {
@@ -188,12 +134,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return $rels;
     }
 
-    /**
-     * @param $key
-     *
-     * @return \GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata
-     */
-    public function getRelationship($key)
+    public function getRelationship($key): ?RelationshipMetadata
     {
         if (array_key_exists($key, $this->relationships)) {
             return $this->relationships[$key];
@@ -202,12 +143,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return null;
     }
 
-    /**
-     * @param mixed $andLazy
-     *
-     * @return RelationshipMetadata[]
-     */
-    public function getSimpleRelationships($andLazy = true)
+    public function getSimpleRelationships(mixed $andLazy = true): array
     {
         $coll = [];
         foreach ($this->relationships as $relationship) {
@@ -219,10 +155,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return $coll;
     }
 
-    /**
-     * @return RelationshipMetadata[]|RelationshipEntityMetadata[]
-     */
-    public function getRelationshipEntities()
+    public function getRelationshipEntities(): array
     {
         $coll = [];
         foreach ($this->relationships as $relationship) {
@@ -234,15 +167,12 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return $coll;
     }
 
-    /**
-     * @return array
-     */
-    public function getAssociatedObjects()
+    public function getAssociatedObjects(): array
     {
         return $this->getSimpleRelationships();
     }
 
-    public function hasAssociation($fieldName)
+    public function hasAssociation($fieldName): bool
     {
         foreach ($this->relationships as $relationship) {
             if ($relationship->getPropertyName() === $fieldName) {
@@ -253,7 +183,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return false;
     }
 
-    public function isSingleValuedAssociation($fieldName)
+    public function isSingleValuedAssociation($fieldName): bool
     {
         foreach ($this->relationships as $relationship) {
             if ($relationship->getPropertyName() === $fieldName && !$relationship->isCollection()) {
@@ -264,7 +194,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return false;
     }
 
-    public function isCollectionValuedAssociation($fieldName)
+    public function isCollectionValuedAssociation($fieldName): bool
     {
         foreach ($this->relationships as $relationship) {
             if ($relationship->getPropertyName() === $fieldName && $relationship->isCollection()) {
@@ -275,7 +205,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return false;
     }
 
-    public function getAssociationNames()
+    public function getAssociationNames(): array
     {
         $names = [];
         foreach ($this->relationships as $relationship) {
@@ -285,7 +215,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return $names;
     }
 
-    public function getAssociationTargetClass($assocName)
+    public function getAssociationTargetClass($assocName): ?string
     {
         foreach ($this->relationships as $relationship) {
             if ($relationship->getPropertyName() === $assocName) {
@@ -300,7 +230,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return null;
     }
 
-    public function isAssociationInverseSide($assocName)
+    public function isAssociationInverseSide($assocName): bool
     {
         // is not implemented in the context of the ogm.
         // if entities should be hydrated on the inversed entity, the only mappedBy annotation property should be used.
@@ -308,7 +238,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return false;
     }
 
-    public function getAssociationMappedByTargetField($assocName)
+    public function getAssociationMappedByTargetField($assocName): ?string
     {
         foreach ($this->relationships as $relationship) {
             if ($relationship->hasMappedByProperty() && $relationship->getMappedByProperty() === $assocName) {
@@ -319,7 +249,7 @@ final class NodeEntityMetadata extends GraphEntityMetadata
         return null;
     }
 
-    public function getMappedByFieldsForFetch()
+    public function getMappedByFieldsForFetch(): array
     {
         $fields = [];
         foreach ($this->getFetchRelationships() as $relationship) {
